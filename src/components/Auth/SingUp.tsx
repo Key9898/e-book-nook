@@ -1,6 +1,9 @@
 import { useState } from 'react'
+import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
 import Logo from '../../assets/logo/e-book-nook.svg'
 import { XMarkIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { auth, db } from '../../firebaseConfig'
 
 interface SignUpProps {
   onBackToSignIn?: () => void
@@ -41,7 +44,7 @@ export default function SignUp({ onBackToSignIn, onClose, onNavigate }: SignUpPr
                 const fd = new FormData(form)
                 const email = String(fd.get('email') || '')
                 const password = String(fd.get('password') || '')
-                if (!auth || !(auth as any).app) {
+                if (!auth || !auth.app) {
                   window.dispatchEvent(
                     new CustomEvent('app:notify', {
                       detail: {
@@ -75,11 +78,14 @@ export default function SignUp({ onBackToSignIn, onClose, onNavigate }: SignUpPr
                         createdAt: serverTimestamp(),
                       })
                     }
-                  } catch {}
+                  } catch {
+                    // Failed to create welcome notification
+                  }
                   if (onBackToSignIn) onBackToSignIn()
-                } catch (err: any) {
+                } catch (err: unknown) {
+                  const error = err as { code?: string }
                   let msg = 'Sign up failed. Please try again.'
-                  switch (err?.code) {
+                  switch (error?.code) {
                     case 'auth/email-already-in-use':
                       msg = 'This email is already registered.'
                       break
@@ -96,7 +102,7 @@ export default function SignUp({ onBackToSignIn, onClose, onNavigate }: SignUpPr
                     default:
                       break
                   }
-                  console.error('[SignUp] Error:', err?.code || err)
+                  console.error('[SignUp] Error:', error?.code || err)
                   window.dispatchEvent(
                     new CustomEvent('app:notify', {
                       detail: { type: 'error', title: 'Sign up error', message: msg },
@@ -282,6 +288,3 @@ export default function SignUp({ onBackToSignIn, onClose, onNavigate }: SignUpPr
     </>
   )
 }
-import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { auth, db } from '../../firebaseConfig'
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore'

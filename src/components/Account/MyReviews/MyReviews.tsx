@@ -15,6 +15,18 @@ import {
 import { FaFilePdf } from 'react-icons/fa6'
 import { LuFileAudio } from 'react-icons/lu'
 
+interface ReviewDoc {
+  text?: string
+  content?: string
+  rating?: number
+  country?: string
+  bookType?: string
+  createdAt?: Timestamp
+  userId?: string
+  uid?: string
+  authorId?: string
+}
+
 type ReviewItem = {
   id: string
   content: string
@@ -32,7 +44,7 @@ export default function MyReviews() {
   const [editingRating, setEditingRating] = useState<number>(5)
 
   useEffect(() => {
-    if (!(auth as any)?.app) return
+    if (!auth?.app) return
     const unsub = onAuthStateChanged(auth!, (u) => setUid(u?.uid || ''))
     return () => unsub()
   }, [])
@@ -50,7 +62,7 @@ export default function MyReviews() {
         qq,
         (snap) => {
           const list: ReviewItem[] = snap.docs.map((d) => {
-            const v = d.data() as any
+            const v = d.data() as ReviewDoc
             return {
               id: d.id,
               content: String(v.text || v.content || ''),

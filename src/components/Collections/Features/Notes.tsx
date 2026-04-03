@@ -87,7 +87,9 @@ export default function Notes({ open = true, onClose, bookId }: NotesProps) {
             window.dispatchEvent(
               new CustomEvent('app:notify', { detail: { type: 'success', title: 'Notes saved' } })
             )
-          } catch {}
+          } catch {
+            // Failed to dispatch notification event
+          }
         } catch (err) {
           console.error('Error saving note:', err)
         }
@@ -102,7 +104,9 @@ export default function Notes({ open = true, onClose, bookId }: NotesProps) {
           window.dispatchEvent(
             new CustomEvent('app:notify', { detail: { type: 'success', title: 'Notes saved' } })
           )
-        } catch {}
+        } catch {
+          // Failed to dispatch notification event
+        }
       }
     }, 1000)
 
@@ -167,13 +171,17 @@ export default function Notes({ open = true, onClose, bookId }: NotesProps) {
     } else {
       try {
         localStorage.removeItem(`notes_${bookId}`)
-      } catch {}
+      } catch {
+        // Failed to remove note from localStorage
+      }
     }
     try {
       window.dispatchEvent(
         new CustomEvent('app:notify', { detail: { type: 'success', title: 'Note deleted' } })
       )
-    } catch {}
+    } catch {
+      // Failed to dispatch notification event
+    }
   }
 
   if (!open) return null

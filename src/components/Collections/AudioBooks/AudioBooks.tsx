@@ -27,7 +27,8 @@ import ScrollToTopButton from '../../Layouts/ScrollUpToTopButton'
 import HeroBanner from '../../Layouts/HeroBanner'
 import Breadcrumb from '../../Layouts/Breadcrumb'
 import AudioPagination from './AudioPagination'
-import AudioFiltersSidebar, { defaultFilters } from './AudioFilterSidebar'
+import AudioFiltersSidebar from './AudioFilterSidebar'
+import { defaultFilters } from './audioFilterConstants'
 import { LuFileAudio } from 'react-icons/lu'
 import AudioPlayer from '../Features/AudioPlayer'
 import { db } from '../../../firebaseConfig'
@@ -73,7 +74,9 @@ export default function Audiobooks({ onNavigate }: AudiobooksProps) {
         setActiveAudio({ id: p.id, title: p.title, cover: '', audioUrl: p.url })
         localStorage.removeItem('launchAudio')
       }
-    } catch {}
+    } catch {
+      // Failed to parse launchAudio from localStorage
+    }
   }, [])
 
   useEffect(() => {
@@ -82,7 +85,7 @@ export default function Audiobooks({ onNavigate }: AudiobooksProps) {
       const counts: Record<string, number> = {}
       const sums: Record<string, number> = {}
       snap.forEach((d) => {
-        const data = d.data() as any
+        const data = d.data()
         const bt = String(data?.bookType || '')
         if (!bt) return
         const rating = Number(data?.rating) || 0
@@ -363,7 +366,7 @@ export default function Audiobooks({ onNavigate }: AudiobooksProps) {
                 >
                   <div className="py-1">
                     {sortOptions.map((option) => {
-                      const key =
+                      const key: 'best' | 'latest' | 'az' | 'za' =
                         option.name === 'Best Rating'
                           ? 'best'
                           : option.name === 'Latest'
@@ -371,13 +374,13 @@ export default function Audiobooks({ onNavigate }: AudiobooksProps) {
                             : option.name === 'Name: A to Z'
                               ? 'az'
                               : 'za'
-                      const isCurrent = sortBy === (key as any)
+                      const isCurrent = sortBy === key
                       return (
                         <MenuItem key={option.name}>
                           <button
                             type="button"
                             onClick={() => {
-                              setSortBy(key as any)
+                              setSortBy(key)
                               setCurrentPage(1)
                             }}
                             className={classNames(

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { User } from 'firebase/auth'
 import { getFirestore, collection, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import { XMarkIcon } from '@heroicons/react/24/outline'
@@ -11,6 +11,17 @@ interface ViewedItem {
   ts?: number
 }
 
+interface ViewedItemDoc {
+  title?: string
+  coverUrl?: string
+  ts?: number
+}
+
+interface CustomEventDetail {
+  type?: string
+  title?: string
+}
+
 interface RecentlyViewedProps {
   open: boolean
   onClose: () => void
@@ -21,16 +32,7 @@ export default function RecentlyViewed({ open, onClose }: RecentlyViewedProps) {
   const [items, setItems] = useState<ViewedItem[]>([])
   const [user, setUser] = useState<User | null>(null)
 
-  useEffect(() => {
-    if (!auth) return
-    const unsubscribe = auth.onAuthStateChanged((u: User | null) => {
-      setUser(u)
-      if (open) refresh(u)
-    })
-    return () => unsubscribe()
-  }, [open])
-
-  const refresh = async (currentUser?: User | null) => {
+  const refresh = useCallback(async (currentUser?: User | null) => {
     const u = currentUser || user || auth?.currentUser
     const uid = u?.uid || localStorage.getItem('auth_user')
 
@@ -38,17 +40,20 @@ export default function RecentlyViewed({ open, onClose }: RecentlyViewedProps) {
       try {
         const db = getFirestore()
         const snap = await getDocs(collection(db, 'users', uid, 'recentlyViewed'))
-        const remote: ViewedItem[] = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+        const remote: ViewedItem[] = snap.docs.map((d) => ({ id: d.id, ...(d.data() as ViewedItemDoc) }))
         let local: ViewedItem[] = []
         try {
           const raw = localStorage.getItem('recentlyViewed')
           local = raw ? JSON.parse(raw) : []
-        } catch {}
+        } catch {
+          // Local storage read failed
+        }
         const mergedMap = new Map<string, ViewedItem>()
         for (const i of [...local, ...remote]) mergedMap.set(i.id, i)
         const merged = Array.from(mergedMap.values()).sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0))
         setItems(merged)
       } catch {
+        // Firestore read failed, fallback to local
         try {
           const raw = localStorage.getItem('recentlyViewed')
           const list: ViewedItem[] = raw ? JSON.parse(raw) : []
@@ -66,19 +71,28 @@ export default function RecentlyViewed({ open, onClose }: RecentlyViewedProps) {
     } catch {
       setItems([])
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (!auth) return
+    const unsubscribe = auth.onAuthStateChanged((u: User | null) => {
+      setUser(u)
+      if (open) refresh(u)
+    })
+    return () => unsubscribe()
+  }, [open, refresh])
 
   useEffect(() => {
     if (open) refresh()
-  }, [open, user])
+  }, [open, refresh])
 
   useEffect(() => {
     const onUpdate = () => {
       refresh()
     }
-    window.addEventListener('recentlyViewed:update', onUpdate as any)
-    return () => window.removeEventListener('recentlyViewed:update', onUpdate as any)
-  }, [user])
+    window.addEventListener('recentlyViewed:update', onUpdate as EventListener)
+    return () => window.removeEventListener('recentlyViewed:update', onUpdate as EventListener)
+  }, [refresh])
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
@@ -86,7 +100,7 @@ export default function RecentlyViewed({ open, onClose }: RecentlyViewedProps) {
     }
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
-  }, [user])
+  }, [refresh])
 
   const handleDeleteAll = async () => {
     const u = user || auth?.currentUser
@@ -98,22 +112,30 @@ export default function RecentlyViewed({ open, onClose }: RecentlyViewedProps) {
         await Promise.all(
           items.map((i) => deleteDoc(doc(db, 'users', uid, 'recentlyViewed', i.id)))
         )
-      } catch {}
+      } catch {
+        // Firestore delete failed
+      }
     }
     try {
       localStorage.removeItem('recentlyViewed')
-    } catch {}
+    } catch {
+      // Local storage remove failed
+    }
     setItems([])
     try {
       window.dispatchEvent(new CustomEvent('recentlyViewed:update'))
-    } catch {}
+    } catch {
+      // Event dispatch failed
+    }
     try {
       window.dispatchEvent(
-        new CustomEvent('app:notify', {
+        new CustomEvent<CustomEventDetail>('app:notify', {
           detail: { type: 'success', title: 'Cleared recently viewed' },
         })
       )
-    } catch {}
+    } catch {
+      // Notify event dispatch failed
+    }
   }
 
   return (

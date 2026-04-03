@@ -15,6 +15,11 @@ interface HeaderProps {
   onNavigate?: (page: string) => void
 }
 
+interface UserChangedDetail {
+  email?: string
+  displayName?: string
+}
+
 const navigation = [
   { name: 'Collections', slug: 'collections' },
   { name: 'Reviews', slug: 'reviews' },
@@ -32,7 +37,7 @@ export default function Header({ onNavigate }: HeaderProps) {
   // isActive Logic တွေကို ဖယ်လိုက်ပါပြီ
 
   const handleSignOut = async () => {
-    if (!(auth as any)?.app) {
+    if (!auth?.app) {
       window.dispatchEvent(
         new CustomEvent('app:notify', {
           detail: {
@@ -60,7 +65,7 @@ export default function Header({ onNavigate }: HeaderProps) {
   }, [])
 
   useEffect(() => {
-    if (!(auth as any)?.app) return
+    if (!auth?.app) return
     const unsub = onAuthStateChanged(auth, (user: User | null) => {
       const email = user?.email ?? null
       setUserEmail(email)
@@ -78,24 +83,24 @@ export default function Header({ onNavigate }: HeaderProps) {
       setAuthMode('signup')
       setAuthOpen(true)
     }
-    window.addEventListener('app:auth:open', openSignIn as any)
-    window.addEventListener('app:auth:open:signin', openSignIn as any)
-    window.addEventListener('app:auth:open:signIn', openSignIn as any)
-    window.addEventListener('app:auth:open:signup', openSignUp as any)
-    const onUserChanged = (e: any) => {
-      const d = (e as CustomEvent).detail || {}
+    window.addEventListener('app:auth:open', openSignIn as EventListener)
+    window.addEventListener('app:auth:open:signin', openSignIn as EventListener)
+    window.addEventListener('app:auth:open:signIn', openSignIn as EventListener)
+    window.addEventListener('app:auth:open:signup', openSignUp as EventListener)
+    const onUserChanged = (e: Event) => {
+      const d = (e as CustomEvent<UserChangedDetail>).detail || {}
       if (typeof d.email === 'string') setUserEmail(d.email)
       if (typeof d.displayName === 'string')
         setUserDisplayName(d.displayName ?? (d.email ? d.email.split('@')[0] : null))
       else if (d.email && !d.displayName) setUserDisplayName(d.email.split('@')[0])
     }
-    window.addEventListener('app:user:changed', onUserChanged as any)
+    window.addEventListener('app:user:changed', onUserChanged as EventListener)
     return () => {
-      window.removeEventListener('app:auth:open', openSignIn as any)
-      window.removeEventListener('app:auth:open:signin', openSignIn as any)
-      window.removeEventListener('app:auth:open:signIn', openSignIn as any)
-      window.removeEventListener('app:auth:open:signup', openSignUp as any)
-      window.removeEventListener('app:user:changed', onUserChanged as any)
+      window.removeEventListener('app:auth:open', openSignIn as EventListener)
+      window.removeEventListener('app:auth:open:signin', openSignIn as EventListener)
+      window.removeEventListener('app:auth:open:signIn', openSignIn as EventListener)
+      window.removeEventListener('app:auth:open:signup', openSignUp as EventListener)
+      window.removeEventListener('app:user:changed', onUserChanged as EventListener)
     }
   }, [])
 

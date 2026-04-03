@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { StarIcon } from '@heroicons/react/20/solid'
@@ -55,11 +55,13 @@ export default function PdfReader({ bookId, fileUrl, title, coverUrl, onClose }:
   const [jumpValue, setJumpValue] = useState<string>('1')
 
   const progressRef = useRef<BookProgress>({ totalPages: 0, currentPage: 1 })
-  const flushSave = async () => {
+  const flushSave = useCallback(async () => {
     try {
       await saveBookProgress(bookId, progressRef.current)
-    } catch {}
-  }
+    } catch {
+      // Failed to save book progress
+    }
+  }, [bookId])
   const [loadingDoc, setLoadingDoc] = useState<boolean>(true)
 
   useEffect(() => {
@@ -115,7 +117,7 @@ export default function PdfReader({ bookId, fileUrl, title, coverUrl, onClose }:
       )
       void flushSave()
     }
-  }, [page, bookId, numPages])
+  }, [page, bookId, numPages, flushSave])
 
   useEffect(() => {
     setJumpValue(String(page))
@@ -173,7 +175,14 @@ export default function PdfReader({ bookId, fileUrl, title, coverUrl, onClose }:
       window.removeEventListener('beforeunload', onBeforeUnload)
       window.removeEventListener('pagehide', onPageHide)
     }
-  }, [bookId, page, numPages])
+  }, [bookId, page, numPages, flushSave])
+
+  interface RecentlyViewedItem {
+    id: string
+    title?: string
+    coverUrl?: string
+    ts?: number
+  }
 
   // Recently Viewed Logic
   useEffect(() => {
@@ -188,30 +197,37 @@ export default function PdfReader({ bookId, fileUrl, title, coverUrl, onClose }:
           { merge: true }
         )
       } catch {
+        // Failed to save to Firestore, falling back to localStorage
         try {
           const raw = localStorage.getItem('recentlyViewed')
-          const list = raw ? JSON.parse(raw) : []
+          const list: RecentlyViewedItem[] = raw ? JSON.parse(raw) : []
           const next = [
             { id: bookId, title, coverUrl, ts },
-            ...list.filter((i: any) => i.id !== bookId),
+            ...list.filter((i) => i.id !== bookId),
           ]
           localStorage.setItem('recentlyViewed', JSON.stringify(next.slice(0, 20)))
-        } catch {}
+        } catch {
+          // Failed to save to localStorage fallback
+        }
       }
     } else {
       try {
         const raw = localStorage.getItem('recentlyViewed')
-        const list = raw ? JSON.parse(raw) : []
+        const list: RecentlyViewedItem[] = raw ? JSON.parse(raw) : []
         const next = [
           { id: bookId, title, coverUrl, ts },
-          ...list.filter((i: any) => i.id !== bookId),
+          ...list.filter((i) => i.id !== bookId),
         ]
         localStorage.setItem('recentlyViewed', JSON.stringify(next.slice(0, 20)))
-      } catch {}
+      } catch {
+        // Failed to save to localStorage
+      }
     }
     try {
       window.dispatchEvent(new CustomEvent('recentlyViewed:update'))
-    } catch {}
+    } catch {
+      // Failed to dispatch recentlyViewed update event
+    }
   }, [bookId, title, coverUrl])
 
   const pdfKey = useMemo(() => {
@@ -249,8 +265,16 @@ export default function PdfReader({ bookId, fileUrl, title, coverUrl, onClose }:
         setReviews(list)
       })
       return () => unsub()
-    } catch {}
+    } catch {
+      // Failed to subscribe to reviews
+    }
   }, [pdfKey])
+
+  interface FavoriteItem {
+    id: string
+    title?: string
+    coverUrl?: string
+  }
 
   const addFavorite = async () => {
     const uid = localStorage.getItem('auth_user')
@@ -260,22 +284,28 @@ export default function PdfReader({ bookId, fileUrl, title, coverUrl, onClose }:
         await setDoc(doc(db, 'users', uid, 'favorites', bookId), { id: bookId, title, coverUrl })
         try {
           window.dispatchEvent(new CustomEvent('favorites:update'))
-        } catch {}
+        } catch {
+          // Failed to dispatch favorites update event
+        }
         try {
           window.dispatchEvent(
             new CustomEvent('app:notify', {
               detail: { type: 'success', title: 'Added to favorites', message: title ?? bookId },
             })
           )
-        } catch {}
+        } catch {
+          // Failed to dispatch notification event
+        }
         setOpenFav(true)
         return
-      } catch {}
+      } catch {
+        // Failed to save to Firestore, falling back to localStorage
+      }
     }
     try {
       const raw = localStorage.getItem('favorites')
-      const list = raw ? JSON.parse(raw) : []
-      if (!list.find((i: any) => i.id === bookId)) {
+      const list: FavoriteItem[] = raw ? JSON.parse(raw) : []
+      if (!list.find((i) => i.id === bookId)) {
         const next = [{ id: bookId, title, coverUrl }, ...list]
         localStorage.setItem('favorites', JSON.stringify(next))
         try {
@@ -284,7 +314,9 @@ export default function PdfReader({ bookId, fileUrl, title, coverUrl, onClose }:
               detail: { type: 'success', title: 'Added to favorites', message: title ?? bookId },
             })
           )
-        } catch {}
+        } catch {
+          // Failed to dispatch notification event
+        }
       } else {
         try {
           window.dispatchEvent(
@@ -292,13 +324,19 @@ export default function PdfReader({ bookId, fileUrl, title, coverUrl, onClose }:
               detail: { type: 'success', title: 'Already in favorites', message: title ?? bookId },
             })
           )
-        } catch {}
+        } catch {
+          // Failed to dispatch notification event
+        }
       }
       try {
         window.dispatchEvent(new CustomEvent('favorites:update'))
-      } catch {}
+      } catch {
+        // Failed to dispatch favorites update event
+      }
       setOpenFav(true)
-    } catch {}
+    } catch {
+      // Failed to save to localStorage
+    }
   }
 
   return (

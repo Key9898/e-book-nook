@@ -8,7 +8,9 @@ export function useDarkMode() {
     let storedTheme: string | null = null
     try {
       storedTheme = localStorage.getItem('theme')
-    } catch {}
+    } catch {
+      // localStorage not available
+    }
     if (storedTheme === 'dark' || storedTheme === 'light') {
       const dark = storedTheme === 'dark'
       setIsDark(dark)
@@ -37,7 +39,9 @@ export function useDarkMode() {
     let mql: MediaQueryList | null = null
     try {
       mql = window.matchMedia('(prefers-color-scheme: dark)')
-    } catch {}
+    } catch {
+      // matchMedia not available
+    }
     const onMedia = (e: MediaQueryListEvent) => {
       try {
         const hasStored = localStorage.getItem('theme')
@@ -47,7 +51,9 @@ export function useDarkMode() {
           if (dark) document.documentElement.setAttribute('data-theme', 'dark')
           else document.documentElement.removeAttribute('data-theme')
         }
-      } catch {}
+      } catch {
+        // localStorage not available
+      }
     }
     mql?.addEventListener('change', onMedia)
     return () => {
@@ -64,12 +70,16 @@ export function useDarkMode() {
         document.documentElement.setAttribute('data-theme', 'dark')
         try {
           localStorage.setItem('theme', 'dark')
-        } catch {}
+        } catch {
+          // localStorage not available
+        }
       } else {
         document.documentElement.removeAttribute('data-theme')
         try {
           localStorage.setItem('theme', 'light')
-        } catch {}
+        } catch {
+          // localStorage not available
+        }
       }
       return nextMode
     })

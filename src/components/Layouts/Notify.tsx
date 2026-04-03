@@ -3,6 +3,12 @@ import { Transition } from '@headlessui/react'
 import { CheckCircleIcon } from '@heroicons/react/24/outline'
 import { XMarkIcon } from '@heroicons/react/20/solid'
 
+declare global {
+  interface Window {
+    __notifyTimer?: number
+  }
+}
+
 export default function Notification() {
   const [show, setShow] = useState(false)
   const [title, setTitle] = useState('')
@@ -18,8 +24,8 @@ export default function Notification() {
       setMessage(detail.message ?? '')
       setType(detail.type ?? 'success')
       setShow(true)
-      window.clearTimeout((window as any).__notifyTimer)
-      ;(window as any).__notifyTimer = window.setTimeout(() => setShow(false), 4000)
+      window.clearTimeout(window.__notifyTimer)
+      window.__notifyTimer = window.setTimeout(() => setShow(false), 4000)
     }
     window.addEventListener('app:notify', handler as EventListener)
     return () => window.removeEventListener('app:notify', handler as EventListener)

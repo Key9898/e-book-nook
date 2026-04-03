@@ -50,12 +50,19 @@ interface PdfBooksProps {
   onNavigate?: (page: string) => void
 }
 
+interface ReviewDoc {
+  bookType?: string
+  rating?: number
+}
+
+type SortByType = 'best' | 'latest' | 'az' | 'za'
+
 export default function PdfBooks({ onNavigate }: PdfBooksProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const postsPerPage = 20
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [sortBy, setSortBy] = useState<'best' | 'latest' | 'az' | 'za'>('best')
+  const [sortBy, setSortBy] = useState<SortByType>('best')
   const [activePdf, setActivePdf] = useState<{
     id: string
     title: string
@@ -73,7 +80,9 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
         setActivePdf({ id: p.id, title: p.title, cover: '', fileUrl: p.url })
         localStorage.removeItem('launchPdf')
       }
-    } catch {}
+    } catch {
+      // Failed to parse launchPdf from localStorage
+    }
   }, [])
 
   useEffect(() => {
@@ -82,7 +91,7 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
       const counts: Record<string, number> = {}
       const sums: Record<string, number> = {}
       snap.forEach((d) => {
-        const data = d.data() as any
+        const data = d.data() as ReviewDoc
         const bt = String(data?.bookType || '')
         if (!bt) return
         const rating = Number(data?.rating) || 0
@@ -357,7 +366,7 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                 >
                   <div className="py-1">
                     {sortOptions.map((option) => {
-                      const key =
+                      const key: SortByType =
                         option.name === 'Best Rating'
                           ? 'best'
                           : option.name === 'Latest'
@@ -365,13 +374,13 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                             : option.name === 'Name: A to Z'
                               ? 'az'
                               : 'za'
-                      const isCurrent = sortBy === (key as any)
+                      const isCurrent = sortBy === key
                       return (
                         <MenuItem key={option.name}>
                           <button
                             type="button"
                             onClick={() => {
-                              setSortBy(key as any)
+                              setSortBy(key)
                               setCurrentPage(1)
                             }}
                             className={classNames(

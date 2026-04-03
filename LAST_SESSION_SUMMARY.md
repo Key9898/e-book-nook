@@ -3,219 +3,79 @@
 ## Session Information
 
 **Date:** 2026-04-04
-**Session Type:** ESLint/TypeScript Error Fixes
-**Agent:** Trae IDE
+**Session Type:** Firestore Configuration & Documentation Update
+**Agent:** Trae
 
 ---
 
 ## Tasks Completed
 
-### 1. React Hooks Rules Fix (ReviewsForm.tsx)
+### 1. Firestore Security Rules Configuration
 
-Fixed React Hooks rules violations:
+Configured comprehensive security rules in Firebase Console for all user data namespaces:
 
-- Moved all hooks (`useState`, `useEffect`, `useCallback`) before early returns
-- Fixed conditional hook calls order
-- Ensured hooks are always called in the same order
+- **Users namespace:** readingProgress, audioProgress, readingTime, my_library, favorites, recentlyViewed, readingGoals, appActivity, notes
+- **Mind Maps:** mindmaps collection with user-specific access
+- **Reviews & Comments:** Public read, authenticated write
+- **Notifications:** User-specific read/write
 
-### 2. TypeScript Type Safety Fix (firebaseConfig.ts)
+### 2. Firestore Composite Indexes
 
-Fixed TypeScript type safety issues:
+Created 3 required composite indexes in Firebase Console:
+| Collection | Field 1 | Field 2 | Query Scope |
+|------------|---------|---------|-------------|
+| reviews | bookType (Ascending) | createdAt (Descending) | Collection |
+| reviews | authorId (Ascending) | createdAt (Descending) | Collection |
+| notifications | to (Ascending) | createdAt (Descending) | Collection |
 
-- Added proper type imports: `Auth`, `Firestore`, `FirebaseStorage`
-- Changed `null as any` to proper union types: `Auth | null`, `Firestore | null`, `FirebaseStorage | null`
-- Changed `@ts-ignore` to `@ts-expect-error` with descriptive comment
+Note: Single-field indexes (6 total) are automatically managed by Firebase and don't need manual configuration.
 
-### 3. ESLint Empty Catch Block Fix (utils.ts)
+### 3. Local File Cleanup
 
-Fixed ESLint empty catch block warnings:
+Removed local Firestore configuration files after confirming Firebase Console setup:
 
-- Added `console.warn` statements to all empty catch blocks
-- Provides debugging info for Firestore/localStorage failures
+- Deleted `firestore.rules`
+- Deleted `firestore.indexes.json`
 
-### 4. Verification
+### 4. Firebase Import Fix
 
-- Ran `npm run format` - All files formatted successfully
-- Ran `npm run typecheck` - No TypeScript errors
+Fixed white screen error caused by incorrect Firebase type imports:
 
----
+- Separated value imports (`getAuth`, `getFirestore`, `getStorage`) from type imports (`Auth`, `Firestore`, `FirebaseStorage`)
+- Used `import type` syntax for TypeScript types to prevent runtime errors
 
-## Files Modified
+### 5. Documentation Updates
 
-| File                | Action  | Changes                            |
-| ------------------- | ------- | ---------------------------------- |
-| `ReviewsForm.tsx`   | Updated | Fixed React Hooks rules violations |
-| `firebaseConfig.ts` | Updated | Fixed TypeScript type safety       |
-| `utils.ts`          | Updated | Fixed ESLint empty catch blocks    |
-| `CHANGELOG.md`      | Updated | Added fix documentation            |
-
----
-
-## Previous Session (2026-04-04 - Earlier)
-
-### 1. Prettier Configuration
-
-- Created `.prettierrc` with Tailwind plugin support
-- Created `.prettierignore` for common ignore patterns
-- Added npm scripts: `format`, `format:check`
-
-### 2. Inline CSS Fixes (NO inline CSS Rule)
-
-Fixed all 4 inline CSS violations using Tailwind CSS:
-
-| File                 | Issue                                     | Solution                                                              |
-| -------------------- | ----------------------------------------- | --------------------------------------------------------------------- |
-| `chart.tsx`          | `style={{ backgroundColor: item.color }}` | CSS variable `--chart-color` with Tailwind `bg-[var(--chart-color)]`  |
-| `Reviews.tsx`        | `style={{ width: calc(...) }}`            | CSS variable `--bar-width` for percentage calculation                 |
-| `Notes.tsx`          | className/style order                     | Reorganized (kept inline for drag positioning - legitimate exception) |
-| `AccountSidebar.tsx` | Inline width styles                       | Converted to Tailwind `w-24`/`w-72` classes                           |
-
-### 3. Firestore Security Rules
-
-Created `firestore.rules` with comprehensive security rules:
-
-- **Users namespace** - Owner-only access for all subcollections
-  - `readingProgress` - PDF reading progress tracking
-  - `audioProgress` - Audio playback progress
-  - `readingTime` - Reading time logs
-  - `my_library` - User library items
-  - `favorites` - User favorites
-  - `recentlyViewed` - Recently viewed items
-  - `readingGoals` - Reading goals
-  - `appActivity` - Per-day activity markers
-  - `notes` - Book notes overlay
-  - `mindmaps` - Mind map data
-
-- **Reviews** - Public read, authenticated create, author-only update/delete
-  - Comments subcollection with same pattern
-
-- **Notifications** - Recipient-only access with broadcast support
-
-### 4. Firestore Indexes
-
-Created `firestore.indexes.json` with indexes for:
-
-- `readingProgress` - updatedAt DESCENDING
-- `audioProgress` - updatedAt DESCENDING
-- `readingTime` - ts DESCENDING
-- `recentlyViewed` - ts DESCENDING
-- `reviews` - bookType + createdAt, authorId + createdAt
-- `notifications` - to + createdAt
-- `appActivity` - ts DESCENDING
-
-### 5. npm Scripts Added
-
-| Script            | Command                 | Purpose                  |
-| ----------------- | ----------------------- | ------------------------ |
-| `format`          | `prettier --write .`    | Format all files         |
-| `format:check`    | `prettier --check .`    | Check formatting         |
-| `typecheck`       | `tsc --noEmit`          | TypeScript type checking |
-| `storybook`       | `storybook dev -p 6006` | Run Storybook dev server |
-| `build-storybook` | `storybook build`       | Build Storybook static   |
-
-### 6. Documentation Updated
-
-- Updated `CHANGELOG.md` with all changes
-- Updated `LAST_SESSION_SUMMARY.md` (this file)
+- Updated `CHANGELOG.md` with all Firestore configuration changes
+- Updated `LAST_SESSION_SUMMARY.md` with current session work
 
 ---
 
 ## Files Modified
 
-| File                     | Action  | Changes                     |
-| ------------------------ | ------- | --------------------------- |
-| `.prettierrc`            | Created | Prettier configuration      |
-| `.prettierignore`        | Created | Prettier ignore patterns    |
-| `firestore.rules`        | Created | Firestore security rules    |
-| `firestore.indexes.json` | Created | Firestore indexes           |
-| `package.json`           | Updated | Added npm scripts           |
-| `chart.tsx`              | Updated | Fixed inline CSS            |
-| `Reviews.tsx`            | Updated | Fixed inline CSS            |
-| `Notes.tsx`              | Updated | Reorganized className/style |
-| `AccountSidebar.tsx`     | Updated | Fixed inline CSS            |
-| `CHANGELOG.md`           | Updated | Added all changes           |
+| File                      | Action  | Changes                                   |
+| ------------------------- | ------- | ----------------------------------------- |
+| `firestore.rules`         | Deleted | Moved to Firebase Console                 |
+| `firestore.indexes.json`  | Deleted | Moved to Firebase Console                 |
+| `src/firebaseConfig.ts`   | Fixed   | Separated type imports from value imports |
+| `CHANGELOG.md`            | Updated | Added Firestore configuration entries     |
+| `LAST_SESSION_SUMMARY.md` | Updated | Current session summary                   |
 
 ---
 
-## Storybook Status
+## Project State Check
 
-Storybook installation was initiated with:
-
-```bash
-npx storybook@latest init --builder vite --no-dev
-```
-
-If not completed, run manually:
-
-```bash
-npx storybook@latest init --builder vite
-```
-
----
-
-## Firestore Indexes - Additional Notes
-
-Current indexes cover basic queries. Additional indexes may be needed for:
-
-1. **Compound queries** - If you query by multiple fields (e.g., `bookType` + `rating`)
-2. **Collection group queries** - If you need to query across all users' subcollections
-
-To add indexes:
-
-1. Edit `firestore.indexes.json`
-2. Deploy with: `firebase deploy --only firestore:indexes`
-3. Or create manually in Firebase Console
-
----
-
-## Project Rules Summary
-
-### Core Rules
-
-1. **NO inline CSS** - Use Tailwind only (CSS variables for dynamic values OK)
-2. **MYOB Rule** - Only modify what is requested
-3. **Document Everything** - Update CHANGELOG.md and LAST_SESSION_SUMMARY.md
-4. **Fully Responsive** - All components must work on ALL devices
-
-### Git Push Workflow
-
-1. Run Storybook build (`npm run build-storybook`)
-2. Run Prettier format (`npm run format`)
-3. Run ESLint check (`npm run lint`)
-4. Update documentation
-5. Commit and push
-
-### Project Structure
-
-- Components: `src/components/*/ComponentName.tsx`
-- Hooks: `src/hooks/use*.ts`
-- Utils: `src/utils/*.ts`
-- Mocks: `src/demo/mocks/*.ts`
+- **Routing:** Custom hash-based SPA routing verified.
+- **Styling:** Tailwind CSS v4 in use (No inline CSS rule enforced).
+- **Auth:** Firebase Auth (Email/Pass + Google) active.
+- **Database:** Firestore with security rules and indexes configured in Firebase Console.
+- **Security:** App Check protection enabled.
 
 ---
 
 ## Next Steps
 
-1. **If Storybook not installed** - Run `npx storybook@latest init --builder vite`
-2. **Create Storybook stories** - Add `.stories.tsx` files for components
-3. **Run format check** - `npm run format` to format all files
-4. **Run typecheck** - `npm run typecheck` to verify TypeScript
-5. **Deploy Firestore rules** - `firebase deploy --only firestore:rules`
-6. **Deploy Firestore indexes** - `firebase deploy --only firestore:indexes`
-
----
-
-## Previous Session (2026-04-03)
-
-### Documentation Enhancement
-
-- Added 10 new sections to PROJECT_PLAN.md
-- Added 12 new sections to PROJECT_RULES.md
-- Updated CHANGELOG.md
-
-### Key Findings
-
-- Custom hash-based SPA routing (NOT React Router)
-- 55+ components across organized folders
-- React 19 + TypeScript 5.9 + Vite 7 + Tailwind CSS v4
-- Firebase 12 (Auth, Firestore, Storage, App Check)
+1. **Storybook Stories:** Create `.stories.tsx` files for remaining modular components.
+2. **Linting Check:** Resolve issues documented in `lint-errors.txt`.
+3. **Type Safety:** Review rest of the codebase for `any` types and consolidate global types.
+4. **UI/UX Audit:** Perform a full responsive design audit across mobile and tablet breakpoints.

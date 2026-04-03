@@ -27,6 +27,7 @@ import {
   type EdgeChange,
   type Connection,
   type NodeProps,
+  type ReactFlowInstance,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
@@ -34,6 +35,30 @@ interface ReadingGoalsProps {
   onNavigate?: (page: string) => void
 }
 type EditableData = { label: string; onChange?: (id: string, v: string) => void }
+
+interface MindMapDoc {
+  nodes?: StoredNode[]
+  edges?: StoredEdge[]
+  updatedAt?: unknown
+}
+
+interface StoredNode {
+  id: string
+  type?: string
+  position?: { x: number; y: number }
+  data?: { label?: string }
+}
+
+interface StoredEdge {
+  id?: string
+  source: string
+  target: string
+}
+
+interface WheelEventWithDelta extends WheelEvent {
+  deltaY?: number
+  ctrlKey?: boolean
+}
 
 const initialNodes: Node[] = [
   { id: 'n1', type: 'editable', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
@@ -49,7 +74,7 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const lastZoomRef = useRef<number>(1)
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const flowRef = useRef<any>(null)
+  const flowRef = useRef<ReactFlowInstance | null>(null)
   const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({
     width: 0,
     height: 0,
@@ -70,7 +95,7 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
     }, [data])
     useEffect(() => {
       if (editingId === id) inputRef.current?.focus()
-    }, [editingId, id])
+    }, [id])
     return (
       <div className="relative w-full h-full rounded-xl border border-slate-300 bg-white shadow">
         <NodeResizer
@@ -110,10 +135,11 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
       </div>
     )
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const nodeTypes = useMemo(() => ({ editable: EditableNode }), [])
 
   useEffect(() => {
-    if (!(auth as any)?.app) return
+    if (!auth?.app) return
     const unsub = onAuthStateChanged(auth, (u) => setUser(u))
     return () => unsub()
   }, [])
@@ -139,15 +165,15 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
     const unsub = onSnapshot(
       ref,
       (snap) => {
-        const data = snap.data() as any
+        const data = snap.data() as MindMapDoc | undefined
         if (data?.nodes && data?.edges) {
-          const loadedNodes: Node[] = (data.nodes as any[]).map((n) => ({
+          const loadedNodes: Node[] = (data.nodes as StoredNode[]).map((n) => ({
             id: String(n.id),
             type: 'editable',
             position: { x: Number(n.position?.x || 0), y: Number(n.position?.y || 0) },
             data: { label: String(n?.data?.label || '') },
           }))
-          const loadedEdges: Edge[] = (data.edges as any[]).map((e) => ({
+          const loadedEdges: Edge[] = (data.edges as StoredEdge[]).map((e) => ({
             id: String(e.id || `${e.source}-${e.target}`),
             source: String(e.source),
             target: String(e.target),
@@ -161,7 +187,9 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
           setTimeout(() => {
             try {
               flowRef.current?.fitView?.({ padding: 0.1 })
-            } catch {}
+            } catch {
+              // fitView not available
+            }
           }, 0)
         }
       },
@@ -177,19 +205,21 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
               },
             })
           )
-        } catch {}
+        } catch {
+          // Notification dispatch failed
+        }
         if (lsKey) {
           try {
             const raw = localStorage.getItem(lsKey)
             if (raw) {
-              const local = JSON.parse(raw)
-              const loadedNodes: Node[] = (local?.nodes || []).map((n: any) => ({
+              const local = JSON.parse(raw) as { nodes?: StoredNode[]; edges?: StoredEdge[] }
+              const loadedNodes: Node[] = (local?.nodes || []).map((n) => ({
                 id: String(n.id),
                 type: 'editable',
                 position: { x: Number(n.position?.x || 0), y: Number(n.position?.y || 0) },
                 data: { label: String(n?.data?.label || '') },
               }))
-              const loadedEdges: Edge[] = (local?.edges || []).map((e: any) => ({
+              const loadedEdges: Edge[] = (local?.edges || []).map((e) => ({
                 id: String(e.id || `${e.source}-${e.target}`),
                 source: String(e.source),
                 target: String(e.target),
@@ -197,12 +227,14 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
               if (loadedNodes.length) setNodes(loadedNodes)
               if (loadedEdges.length) setEdges(loadedEdges)
             }
-          } catch {}
+          } catch {
+            // Local storage parse failed
+          }
         }
       }
     )
     return () => unsub()
-  }, [db, user?.uid])
+  }, [user?.uid, lsKey])
 
   useEffect(() => {
     if (!initialLoadedRef.current) return
@@ -210,7 +242,9 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
     try {
       flowRef.current?.fitView?.({ padding: 0.1 })
       fittedRef.current = true
-    } catch {}
+    } catch {
+      // fitView not available
+    }
   }, [nodes])
 
   const persistMindMap = useCallback(async (uid: string, nodesArg: Node[], edgesArg: Edge[]) => {
@@ -220,7 +254,7 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
       id: n.id,
       type: 'editable',
       position: n.position,
-      data: { label: String((n.data as any)?.label || '') },
+      data: { label: String((n.data as EditableData)?.label || '') },
     }))
     const edgesDoc = edgesArg.map((e) => ({ id: e.id, source: e.source, target: e.target }))
     await setDoc(
@@ -241,7 +275,9 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
             detail: { type: 'success', title: 'Saved', message: 'Mind map saved.' },
           })
         )
-      } catch {}
+      } catch {
+        // Notification dispatch failed
+      }
     } catch {
       try {
         if (lsKey) {
@@ -249,7 +285,7 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
             id: n.id,
             type: 'editable',
             position: n.position,
-            data: { label: String((n.data as any)?.label || '') },
+            data: { label: String((n.data as EditableData)?.label || '') },
           }))
           const edgesDoc = edges.map((e) => ({ id: e.id, source: e.source, target: e.target }))
           localStorage.setItem(
@@ -266,7 +302,9 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
             },
           })
         )
-      } catch {}
+      } catch {
+        // Local storage save failed
+      }
     } finally {
       setSaving(false)
     }
@@ -288,14 +326,16 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
               },
             })
           )
-        } catch {}
+        } catch {
+          // Notification dispatch failed
+        }
         try {
           if (lsKey) {
             const nodesDoc = nodes.map((n) => ({
               id: n.id,
               type: 'editable',
               position: n.position,
-              data: { label: String((n.data as any)?.label || '') },
+              data: { label: String((n.data as EditableData)?.label || '') },
             }))
             const edgesDoc = edges.map((e) => ({ id: e.id, source: e.source, target: e.target }))
             localStorage.setItem(
@@ -303,13 +343,15 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
               JSON.stringify({ nodes: nodesDoc, edges: edgesDoc, ts: Date.now() })
             )
           }
-        } catch {}
+        } catch {
+          // Local storage save failed
+        }
       })
     }, 500)
     return () => {
       if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current)
     }
-  }, [nodes, edges, user?.uid])
+  }, [nodes, edges, user?.uid, persistMindMap, lsKey])
 
   const addNode = useCallback(() => {
     setNodes((prev) => {
@@ -337,7 +379,7 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
         { id: nextId, type: 'editable', position: pos, data: { label: `Node ${prev.length + 1}` } },
       ]
     })
-  }, [selectedIds, containerSize.width, containerSize.height])
+  }, [selectedIds])
 
   const removeSelected = useCallback(() => {
     setNodes((prev) => prev.filter((n) => !selectedIds.includes(n.id)))
@@ -348,7 +390,7 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
 
   const onChangeLabel = useCallback((id: string, v: string) => {
     setNodes((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, data: { ...(n.data as any), label: v } } : n))
+      prev.map((n) => (n.id === id ? { ...n, data: { ...(n.data as EditableData), label: v } } : n))
     )
   }, [])
 
@@ -428,7 +470,9 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
     setTimeout(() => {
       try {
         flowRef.current?.fitView?.({ padding: 0.1 })
-      } catch {}
+      } catch {
+        // fitView not available
+      }
     }, 0)
   }, [edges, containerSize.width, containerSize.height])
 
@@ -471,8 +515,9 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
                 ref={containerRef}
                 className="h-[70vh] w-full group"
                 onWheelCapture={(e) => {
-                  if (!(e as any).ctrlKey) {
-                    const dy = (e as any).deltaY || 0
+                  const wheelEvent = e as WheelEventWithDelta
+                  if (!wheelEvent.ctrlKey) {
+                    const dy = wheelEvent.deltaY || 0
                     if (dy) window.scrollBy({ top: dy, behavior: 'auto' })
                   }
                 }}
@@ -482,13 +527,13 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
                   nodes={nodes.map((n) => ({
                     ...n,
                     type: 'editable',
-                    data: { ...(n.data as any), onChange: onChangeLabel },
+                    data: { ...(n.data as EditableData), onChange: onChangeLabel },
                   }))}
                   edges={edges}
                   onNodesChange={onNodesChange}
                   onEdgesChange={onEdgesChange}
                   onConnect={onConnect}
-                  onSelectionChange={onSelectionChange as any}
+                  onSelectionChange={onSelectionChange}
                   zoomOnScroll={false}
                   panOnScroll={false}
                   zoomOnPinch={false}
@@ -498,7 +543,9 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
                       const dir = (vp.zoom || 0) > (prev || 0) ? 'in' : 'out'
                       try {
                         console.log(`Zoom ${dir}: ${Number(vp.zoom || 0).toFixed(2)}`)
-                      } catch {}
+                      } catch {
+                        // Console log failed
+                      }
                       lastZoomRef.current = vp.zoom || prev
                     }
                     try {
@@ -509,7 +556,9 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
                         (rect?.top ?? 0) + (rect?.height ?? (containerSize.height || 480)) / 2
                       const projected = flowRef.current?.project?.({ x: px, y: py })
                       if (projected) lastCenterRef.current = { x: projected.x, y: projected.y }
-                    } catch {}
+                    } catch {
+                      // Project failed
+                    }
                   }}
                   onInit={(inst) => {
                     flowRef.current = inst

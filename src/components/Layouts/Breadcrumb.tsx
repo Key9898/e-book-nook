@@ -17,7 +17,9 @@ export default function Breadcrumb({ pages, onNavigate, variant = 'light' }: Bre
       if (page === 'home') {
         try {
           localStorage.removeItem('header_active_slug')
-        } catch {}
+        } catch {
+          // Failed to remove header_active_slug from localStorage
+        }
       }
       onNavigate(page)
     }

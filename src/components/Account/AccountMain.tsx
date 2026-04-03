@@ -86,10 +86,12 @@ export default function AccountMain({ onNavigate }: AccountMainProps) {
       const uidVal = user?.uid || ''
       let count = 0
       for (const d of snap.docs) {
-        const data: any = d.data()
-        const readBy = Array.isArray((data as any)?.readBy)
-          ? ((data as any).readBy as string[])
-          : []
+        const data = d.data() as {
+          readBy?: string[]
+          read?: boolean
+          createdAt?: { toMillis?: () => number }
+        }
+        const readBy = Array.isArray(data?.readBy) ? data.readBy : []
         const perUserUnread = uidVal ? !readBy.includes(uidVal) : true
         const legacyUnread = !data?.read
         const ts = Number(data?.createdAt?.toMillis?.() ?? 0) || 0
@@ -162,7 +164,7 @@ export default function AccountMain({ onNavigate }: AccountMainProps) {
           activeHref={section === 'profile' ? '#' : section}
         />
 
-        <div className="xl:pl-72">
+        <div className={`transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'xl:pl-24' : 'xl:pl-72'}`}>
           <main>
             <h1 className="sr-only">Account Settings</h1>
             {section !== 'profile' && (
@@ -252,7 +254,9 @@ export default function AccountMain({ onNavigate }: AccountMainProps) {
                                   const timeout = setTimeout(() => {
                                     try {
                                       task.cancel()
-                                    } catch {}
+                                    } catch {
+                                      // Task cancellation may fail if already complete
+                                    }
                                     reject(new Error('timeout'))
                                   }, 30000)
                                   task.on(
@@ -297,9 +301,12 @@ export default function AccountMain({ onNavigate }: AccountMainProps) {
                                       createdAt: serverTimestamp(),
                                     })
                                   }
-                                } catch {}
-                              } catch (err: any) {
-                                const emsg = (err?.code || err?.message || '')
+                                } catch {
+                                  // Notification creation failed - non-critical
+                                }
+                              } catch (err: unknown) {
+                                const errorObj = err as { code?: string; message?: string }
+                                const emsg = (errorObj?.code || errorObj?.message || '')
                                   .toString()
                                   .toLowerCase()
                                 const isCors =
@@ -314,7 +321,7 @@ export default function AccountMain({ onNavigate }: AccountMainProps) {
                                   isCors || isAppCheck
                                     ? 'Upload blocked (CORS/App Check). Allowlist App Check debug token or adjust rules.'
                                     : 'Could not update avatar. Try again.'
-                                console.error('[Avatar Upload] Error:', err?.code || err)
+                                console.error('[Avatar Upload] Error:', errorObj?.code || err)
                                 if (isCors || isAppCheck) {
                                   const previewUrl = URL.createObjectURL(file)
                                   setPhotoUrl(previewUrl)
@@ -441,10 +448,12 @@ export default function AccountMain({ onNavigate }: AccountMainProps) {
                                         createdAt: serverTimestamp(),
                                       })
                                     }
-                                  } catch {}
+                                  } catch {
+                                    // Notification creation failed - non-critical
+                                  }
                                 }
                                 setEditing(false)
-                              } catch (err) {
+                              } catch {
                                 window.dispatchEvent(
                                   new CustomEvent('app:notify', {
                                     detail: {
@@ -538,7 +547,9 @@ export default function AccountMain({ onNavigate }: AccountMainProps) {
                                 createdAt: serverTimestamp(),
                               })
                             }
-                          } catch {}
+                          } catch {
+                            // Notification creation failed - non-critical
+                          }
                         } catch {
                           window.dispatchEvent(
                             new CustomEvent('app:notify', {
@@ -675,7 +686,8 @@ export default function AccountMain({ onNavigate }: AccountMainProps) {
                         // Optional: Navigate to home or refresh
                         if (onNavigate) onNavigate('home')
                         else window.location.reload()
-                      } catch (err: any) {
+                      } catch (err: unknown) {
+                        const errorObj = err as { message?: string }
                         console.error(err)
                         window.dispatchEvent(
                           new CustomEvent('app:notify', {
@@ -683,7 +695,7 @@ export default function AccountMain({ onNavigate }: AccountMainProps) {
                               type: 'error',
                               title: 'Delete failed',
                               message:
-                                err.message ||
+                                errorObj.message ||
                                 'Could not delete account. Please re-login and try again.',
                             },
                           })

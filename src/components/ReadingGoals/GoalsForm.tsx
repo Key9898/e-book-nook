@@ -82,7 +82,7 @@ export default function GoalsForm({ initialGoal, onSaved, onCancel }: GoalsFormP
         <select
           id="unit"
           value={unit}
-          onChange={(e) => setUnit(e.target.value as any)}
+          onChange={(e) => setUnit(e.target.value as 'PdfBooks' | 'AudioBooks')}
           className="block w-full rounded-xl bg-white px-3.5 py-2 text-base text-slate-900 outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline-2 focus:-outline-offset-2 focus:outline-cyan-600"
         >
           <option value="PdfBooks">PdfBooks</option>

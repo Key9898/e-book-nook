@@ -17,7 +17,7 @@ export default function UserPanel({
 }: UserPanelProps) {
   const [open, setOpen] = useState(false)
   const avatarLetter = useMemo(() => {
-    const base = userDisplayName || userEmail || 'U' || 'U'
+    const base = userDisplayName || userEmail || 'U'
     return base.charAt(0).toUpperCase()
   }, [userDisplayName, userEmail])
 

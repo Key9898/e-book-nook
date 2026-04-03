@@ -198,7 +198,9 @@ export default function BooksDrawer({
                                   key,
                                   JSON.stringify({ id: book.id, title: book.title, url: book.url })
                                 )
-                              } catch {}
+                              } catch {
+                                // Failed to set localStorage item
+                              }
                               onNavigate?.(book.type === 'pdf' ? 'pdfBooks' : 'audiobooks')
                               setOpen(false)
                             }}

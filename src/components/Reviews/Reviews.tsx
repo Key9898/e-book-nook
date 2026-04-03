@@ -17,7 +17,7 @@ import {
   query,
   orderBy,
   onSnapshot,
-  type DocumentData,
+  type Timestamp,
   updateDoc,
   doc,
   increment,
@@ -25,6 +25,38 @@ import {
 import { db, auth } from '../../firebaseConfig'
 import { FaFilePdf } from 'react-icons/fa6'
 import { LuFileAudio } from 'react-icons/lu'
+
+interface ReviewDoc {
+  rating?: number
+  text?: string
+  content?: string
+  userName?: string
+  author?: string
+  country?: string
+  bookType?: string
+  createdAt?: Timestamp
+  date?: string
+  commentCount?: number
+  avatarDataUrl?: string
+}
+
+interface FeaturedReview {
+  id: string
+  rating: number
+  content: string
+  author: string
+  country: string
+  bookType: string
+  date: string
+  commentCount: number
+  avatarSrc: string | null
+}
+
+interface CommentDoc {
+  userName?: string
+  text?: string
+  createdAt?: Timestamp
+}
 
 function classNames(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(' ')
@@ -108,9 +140,9 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        const list: any[] = []
+        const list: FeaturedReview[] = []
         snap.forEach((doc) => {
-          const data = doc.data() as DocumentData
+          const data = doc.data() as ReviewDoc
           list.push({
             id: doc.id,
             rating: Number(data.rating) || 0,
@@ -178,7 +210,9 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
             read: false,
             createdAt: serverTimestamp(),
           })
-        } catch {}
+        } catch {
+          // Failed to send notification
+        }
         setIsFormOpen(false)
         window.dispatchEvent(
           new CustomEvent('app:notify', {
@@ -189,7 +223,7 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
             },
           })
         )
-      } catch (e) {
+      } catch {
         window.dispatchEvent(
           new CustomEvent('app:notify', {
             detail: {
@@ -242,8 +276,12 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
             read: false,
             createdAt: serverTimestamp(),
           })
-        } catch {}
-      } catch {}
+        } catch {
+          // Failed to send notification
+        }
+      } catch {
+        // Failed to add comment
+      }
       setCommentInputs((s) => ({ ...s, [reviewId]: '' }))
       window.dispatchEvent(
         new CustomEvent('app:notify', { detail: { type: 'success', title: 'Comment added' } })
@@ -266,8 +304,8 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
       (snap) => {
         const list: { id: string; userName: string; text: string; createdAt?: string }[] = []
         snap.forEach((d) => {
-          const data = d.data() as DocumentData
-          const rawName = String((data as any).userName || '')
+          const data = d.data() as CommentDoc
+          const rawName = String(data.userName || '')
           const nameOnly = rawName.includes('@') ? rawName.split('@')[0] : rawName
           list.push({
             id: d.id,
@@ -287,7 +325,7 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
       }
     )
     return () => unsub()
-  }, [openCommentsReviewId, db])
+  }, [openCommentsReviewId])
 
   // Month name parsing (typo 'Auguest' ကိုလည်းလက်ခံ)
   // Sort by date (newest → oldest)

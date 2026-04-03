@@ -9,7 +9,18 @@ import {
   updateDoc,
   doc,
   arrayUnion,
+  type Timestamp,
 } from 'firebase/firestore'
+
+interface NotificationDoc {
+  title?: string
+  message?: string
+  type?: 'system' | 'personal'
+  to?: string
+  read?: boolean
+  readBy?: string[]
+  createdAt?: Timestamp
+}
 
 type NoteItem = {
   id: string
@@ -18,7 +29,8 @@ type NoteItem = {
   type: 'system' | 'personal'
   to?: string
   read?: boolean
-  createdAt?: any
+  readBy?: string[]
+  createdAt?: Timestamp
 }
 
 export default function Notifications() {
@@ -27,7 +39,7 @@ export default function Notifications() {
   const [uid, setUid] = useState<string>('')
 
   useEffect(() => {
-    if (!(auth as any)?.app) return
+    if (!auth?.app) return
     const unsub = onAuthStateChanged(auth!, (u) => setUid(u?.uid || ''))
     return () => unsub()
   }, [])
@@ -48,17 +60,31 @@ export default function Notifications() {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        let list = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+        let list = snap.docs.map((d) => {
+          const data = d.data() as NotificationDoc
+          return {
+            id: d.id,
+            title: data.title || '',
+            message: data.message || '',
+            type: data.type || 'personal',
+            to: data.to,
+            read: data.read,
+            readBy: data.readBy,
+            createdAt: data.createdAt,
+          } as NoteItem
+        })
         let dismissed: string[] = []
         try {
           const raw = localStorage.getItem(`noti:dismiss:${uid || 'anon'}`)
           if (raw) dismissed = JSON.parse(raw)
-        } catch {}
+        } catch {
+          // Failed to parse dismissed notifications
+        }
         if (tab === 'system') {
           const now = Date.now()
           const maxAgeMs = 7 * 24 * 60 * 60 * 1000
           list = list.filter((n) => {
-            const readBy = Array.isArray((n as any).readBy) ? ((n as any).readBy as string[]) : []
+            const readBy = Array.isArray(n.readBy) ? n.readBy : []
             const perUserUnread = !readBy.includes(uid || '')
             const legacyUnread = !n.read
             const ts = Number(n?.createdAt?.toMillis?.() ?? 0) || 0
@@ -88,7 +114,9 @@ export default function Notifications() {
         const arr = raw ? JSON.parse(raw) : []
         if (!arr.includes(id)) arr.push(id)
         localStorage.setItem(key, JSON.stringify(arr))
-      } catch {}
+      } catch {
+        // Failed to save dismissed notification
+      }
       setItems((prev) => prev.filter((n) => n.id !== id))
     }
     if (!db) {
@@ -120,7 +148,9 @@ export default function Notifications() {
         const arr = raw ? JSON.parse(raw) : []
         const next = Array.from(new Set([...arr, ...ids]))
         localStorage.setItem(key, JSON.stringify(next))
-      } catch {}
+      } catch {
+        // Failed to save dismissed notifications
+      }
       setItems([])
       return
     }
@@ -132,14 +162,18 @@ export default function Notifications() {
         } else {
           await updateDoc(doc(db, 'notifications', n.id), { read: true })
         }
-      } catch {}
+      } catch {
+        // Failed to mark notification as read
+      }
     }
     try {
       const raw = localStorage.getItem(key)
       const arr = raw ? JSON.parse(raw) : []
       const next = Array.from(new Set([...arr, ...ids]))
       localStorage.setItem(key, JSON.stringify(next))
-    } catch {}
+    } catch {
+      // Failed to save dismissed notifications
+    }
     setItems([])
   }
 
@@ -167,7 +201,7 @@ export default function Notifications() {
 
       <div className="mt-6 space-y-3">
         {items.map((n) => {
-          const readBy = Array.isArray((n as any).readBy) ? ((n as any).readBy as string[]) : []
+          const readBy = Array.isArray(n.readBy) ? n.readBy : []
           const isSystemUnread = tab === 'system' && !readBy.includes(uid || '') && !n.read
           const isUnread = tab === 'system' ? isSystemUnread : !n.read
           return (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { getFirestore, collection, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import type { User } from 'firebase/auth'
 import { XMarkIcon } from '@heroicons/react/24/outline'
@@ -18,18 +18,9 @@ interface FavoritesListProps {
 
 export default function FavoritesList({ open, onClose }: FavoritesListProps) {
   const [items, setItems] = useState<FavoriteItem[]>([])
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
 
-  useEffect(() => {
-    if (!auth) return
-    const unsubscribe = auth.onAuthStateChanged((u: User | null) => {
-      setUser(u)
-      if (open) refresh(u)
-    })
-    return () => unsubscribe()
-  }, [open])
-
-  const refresh = async (currentUser?: any) => {
+  const refresh = useCallback(async (currentUser?: User | null) => {
     const u = currentUser || user || auth?.currentUser
     const uid = u?.uid || localStorage.getItem('auth_user')
 
@@ -37,16 +28,23 @@ export default function FavoritesList({ open, onClose }: FavoritesListProps) {
       try {
         const db = getFirestore()
         const snap = await getDocs(collection(db, 'users', uid, 'favorites'))
-        const remote: FavoriteItem[] = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+        const remote: FavoriteItem[] = snap.docs.map((d) => ({
+          id: d.id,
+          title: d.data().title,
+          coverUrl: d.data().coverUrl,
+        }))
         let local: FavoriteItem[] = []
         try {
           const raw = localStorage.getItem('favorites')
           local = raw ? JSON.parse(raw) : []
-        } catch {}
+        } catch {
+          // Failed to parse localStorage favorites
+        }
         const mergedMap = new Map<string, FavoriteItem>()
         for (const i of [...local, ...remote]) mergedMap.set(i.id, i)
         setItems(Array.from(mergedMap.values()))
       } catch {
+        // Failed to fetch from Firestore, falling back to localStorage
         try {
           const raw = localStorage.getItem('favorites')
           setItems(raw ? JSON.parse(raw) : [])
@@ -62,19 +60,28 @@ export default function FavoritesList({ open, onClose }: FavoritesListProps) {
     } catch {
       setItems([])
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (!auth) return
+    const unsubscribe = auth.onAuthStateChanged((u: User | null) => {
+      setUser(u)
+      if (open) refresh(u)
+    })
+    return () => unsubscribe()
+  }, [open, refresh])
 
   useEffect(() => {
     if (open) refresh()
-  }, [open, user])
+  }, [open, user, refresh])
 
   useEffect(() => {
     const onUpdate = () => {
       refresh()
     }
-    window.addEventListener('favorites:update', onUpdate as any)
-    return () => window.removeEventListener('favorites:update', onUpdate as any)
-  }, [user])
+    window.addEventListener('favorites:update', onUpdate)
+    return () => window.removeEventListener('favorites:update', onUpdate)
+  }, [refresh])
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
@@ -82,7 +89,7 @@ export default function FavoritesList({ open, onClose }: FavoritesListProps) {
     }
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
-  }, [user])
+  }, [refresh])
 
   const handleDeleteAll = async () => {
     const u = user || auth?.currentUser
@@ -92,22 +99,30 @@ export default function FavoritesList({ open, onClose }: FavoritesListProps) {
       try {
         const db = getFirestore()
         await Promise.all(items.map((i) => deleteDoc(doc(db, 'users', uid, 'favorites', i.id))))
-      } catch {}
+      } catch {
+        // Failed to delete favorites from Firestore
+      }
     }
     try {
       localStorage.removeItem('favorites')
-    } catch {}
+    } catch {
+      // Failed to remove favorites from localStorage
+    }
     setItems([])
     try {
       window.dispatchEvent(new CustomEvent('favorites:update'))
-    } catch {}
+    } catch {
+      // Failed to dispatch favorites update event
+    }
     try {
       window.dispatchEvent(
         new CustomEvent('app:notify', {
           detail: { type: 'success', title: 'Deleted all favorites' },
         })
       )
-    } catch {}
+    } catch {
+      // Failed to dispatch notification event
+    }
   }
 
   const remove = async (id: string) => {
@@ -122,10 +137,14 @@ export default function FavoritesList({ open, onClose }: FavoritesListProps) {
       try {
         const db = getFirestore()
         await deleteDoc(doc(db, 'users', uid, 'favorites', id))
-      } catch {}
+      } catch {
+        // Failed to delete favorite from Firestore
+      }
       try {
         window.dispatchEvent(new CustomEvent('favorites:update'))
-      } catch {}
+      } catch {
+        // Failed to dispatch favorites update event
+      }
       try {
         window.dispatchEvent(
           new CustomEvent('app:notify', {
@@ -136,15 +155,21 @@ export default function FavoritesList({ open, onClose }: FavoritesListProps) {
             },
           })
         )
-      } catch {}
+      } catch {
+        // Failed to dispatch notification event
+      }
       return
     }
     try {
       localStorage.setItem('favorites', JSON.stringify(next))
-    } catch {}
+    } catch {
+      // Failed to save favorites to localStorage
+    }
     try {
       window.dispatchEvent(new CustomEvent('favorites:update'))
-    } catch {}
+    } catch {
+      // Failed to dispatch favorites update event
+    }
     try {
       window.dispatchEvent(
         new CustomEvent('app:notify', {
@@ -155,7 +180,9 @@ export default function FavoritesList({ open, onClose }: FavoritesListProps) {
           },
         })
       )
-    } catch {}
+    } catch {
+      // Failed to dispatch notification event
+    }
   }
 
   return (

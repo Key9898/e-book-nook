@@ -16,6 +16,36 @@ import { ChartBarDefault } from './Charts/BarChart'
 import { ChartPieDonutText } from './Charts/PieChart'
 import { ChartLineWeekly } from './Charts/Tooltip'
 
+interface ReadingTimeDoc {
+  minutes?: number
+  ts?: number
+}
+
+interface ProgressDoc {
+  lastActivityTs?: number
+  completedTs?: number
+}
+
+interface AudioProgressDoc extends ProgressDoc {
+  durationMs?: number
+  progress?: number
+}
+
+interface AppActivityDoc {
+  ts?: number
+}
+
+interface ReadingGoalDoc {
+  target?: number
+  targetAmount?: number
+  unit?: string
+}
+
+interface LibraryDoc {
+  status?: string
+  finishedTs?: number
+}
+
 function formatHoursMinutes(totalMinutes: number) {
   const h = Math.floor(totalMinutes / 60)
   const m = totalMinutes % 60
@@ -76,7 +106,9 @@ export default function MyActivity() {
           localStorage.setItem(key, '1')
         }
       }
-    } catch {}
+    } catch {
+      // Failed to update reading goal progress
+    }
   }, [goalCompleted, goalTarget, user?.uid, goalUnitLabel])
 
   useEffect(() => {
@@ -112,7 +144,7 @@ export default function MyActivity() {
   }, [])
 
   useEffect(() => {
-    if (!(auth as any)?.app) return
+    if (!auth?.app) return
     const unsub = onAuthStateChanged(auth, (u) => setUser(u))
     return () => unsub()
   }, [])
@@ -120,20 +152,20 @@ export default function MyActivity() {
   useEffect(() => {
     const run = async () => {
       setLoading(true)
-      let uid = user?.uid || localStorage.getItem('auth_user') || ''
+      const uid = user?.uid || localStorage.getItem('auth_user') || ''
 
       let finishedDocs: { id: string; status?: string; finishedTs?: number }[] = []
       let readingLogs: { minutes: number; ts: number }[] = []
       let activityTs: number[] = []
       let totalTarget = 0
-      let units: Set<string> = new Set()
+      const units: Set<string> = new Set()
       let completedPdf = 0
       let completedAudio = 0
       let audioDurMin = 0
       let pdfCompletedTs: number[] = []
       let audioCompletedTs: number[] = []
-      let readingLastTs: number[] = []
-      let audioLastTs: number[] = []
+      const readingLastTs: number[] = []
+      const audioLastTs: number[] = []
       const now = Date.now()
       const todayStart = startOfDay(now)
 
@@ -144,66 +176,81 @@ export default function MyActivity() {
             { ts: now },
             { merge: true }
           )
-        } catch {}
+        } catch {
+          // Failed to record activity timestamp
+        }
         try {
           const snap = await getDocs(collection(db, 'users', uid, 'my_library'))
-          finishedDocs = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
-        } catch {}
+          finishedDocs = snap.docs.map((d) => ({ id: d.id, ...(d.data() as LibraryDoc) }))
+        } catch {
+          // Failed to fetch library data
+        }
         try {
           const logsSnap = await getDocs(collection(db, 'users', uid, 'readingTime'))
           readingLogs = logsSnap.docs
-            .map((d) => ({
-              minutes: Number((d.data() as any)?.minutes || 0),
-              ts: Number((d.data() as any)?.ts || 0),
-            }))
+            .map((d) => {
+              const data = d.data() as ReadingTimeDoc
+              return {
+                minutes: Number(data?.minutes || 0),
+                ts: Number(data?.ts || 0),
+              }
+            })
             .filter((x) => x.minutes > 0 && x.ts > 0)
-        } catch {}
+        } catch {
+          // Failed to fetch reading time logs
+        }
         try {
           const rpSnap = await getDocs(collection(db, 'users', uid, 'readingProgress'))
           const rpLast = rpSnap.docs
-            .map((d) => Number((d.data() as any)?.lastActivityTs || 0))
+            .map((d) => Number((d.data() as ProgressDoc)?.lastActivityTs || 0))
             .filter((x) => x > 0)
           activityTs.push(...rpLast)
           readingLastTs.push(...rpLast)
           completedPdf = rpSnap.docs.filter(
-            (d) => Number((d.data() as any)?.completedTs || 0) > 0
+            (d) => Number((d.data() as ProgressDoc)?.completedTs || 0) > 0
           ).length
           pdfCompletedTs = rpSnap.docs
-            .map((d) => Number((d.data() as any)?.completedTs || 0))
+            .map((d) => Number((d.data() as ProgressDoc)?.completedTs || 0))
             .filter((x) => x > 0)
-        } catch {}
+        } catch {
+          // Failed to fetch reading progress
+        }
         try {
           const apSnap = await getDocs(collection(db, 'users', uid, 'audioProgress'))
           const apLast = apSnap.docs
-            .map((d) => Number((d.data() as any)?.lastActivityTs || 0))
+            .map((d) => Number((d.data() as AudioProgressDoc)?.lastActivityTs || 0))
             .filter((x) => x > 0)
           activityTs.push(...apLast)
           audioLastTs.push(...apLast)
           completedAudio = apSnap.docs.filter(
-            (d) => Number((d.data() as any)?.completedTs || 0) > 0
+            (d) => Number((d.data() as AudioProgressDoc)?.completedTs || 0) > 0
           ).length
           audioCompletedTs = apSnap.docs
-            .map((d) => Number((d.data() as any)?.completedTs || 0))
+            .map((d) => Number((d.data() as AudioProgressDoc)?.completedTs || 0))
             .filter((x) => x > 0)
           audioDurMin = Math.floor(
             apSnap.docs.reduce((s, d) => {
-              const data = d.data() as any
+              const data = d.data() as AudioProgressDoc
               const dur = Number(data?.durationMs || 0)
               if (Number(data?.completedTs || 0) > 0) return s + dur
               if (typeof data?.progress === 'number') return s + dur * data.progress
               return s
             }, 0) / 60000
           )
-        } catch {}
+        } catch {
+          // Failed to fetch audio progress
+        }
         try {
           const actSnap = await getDocs(collection(db, 'users', uid, 'appActivity'))
           activityTs.push(
-            ...actSnap.docs.map((d) => Number((d.data() as any)?.ts || 0)).filter((x) => x > 0)
+            ...actSnap.docs.map((d) => Number((d.data() as AppActivityDoc)?.ts || 0)).filter((x) => x > 0)
           )
-        } catch {}
+        } catch {
+          // Failed to fetch app activity
+        }
         try {
           const goalsSnap = await getDocs(collection(db, 'users', uid, 'readingGoals'))
-          const goals = goalsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+          const goals = goalsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as ReadingGoalDoc) }))
           goals.forEach((g) => {
             if (g.id !== 'current') {
               totalTarget += Number(g?.target || g?.targetAmount || 0)
@@ -211,7 +258,9 @@ export default function MyActivity() {
               if (u) units.add(u)
             }
           })
-        } catch {}
+        } catch {
+          // Failed to fetch reading goals
+        }
       }
 
       if (!uid) {
@@ -219,21 +268,27 @@ export default function MyActivity() {
           const rawDays = localStorage.getItem('appActivityDays')
           const arr = rawDays ? JSON.parse(rawDays) : []
           const exists = Array.isArray(arr)
-            ? arr.some((d: any) => Number(d) === Number(todayStart))
+            ? arr.some((d: number) => Number(d) === Number(todayStart))
             : false
           const next = Array.isArray(arr) ? (exists ? arr : [...arr, todayStart]) : [todayStart]
           localStorage.setItem('appActivityDays', JSON.stringify(next))
-        } catch {}
+        } catch {
+          // Failed to update local activity days
+        }
         try {
           const raw = localStorage.getItem('my_library')
           const list = raw ? JSON.parse(raw) : []
           finishedDocs = Array.isArray(list) ? list : []
-        } catch {}
+        } catch {
+          // Failed to read local library
+        }
         try {
           const raw = localStorage.getItem('readingTimeLogs')
           const list = raw ? JSON.parse(raw) : []
           readingLogs = Array.isArray(list) ? list : []
-        } catch {}
+        } catch {
+          // Failed to read local reading time logs
+        }
         try {
           const i: number[] = []
           for (let k = 0; k < localStorage.length; k++) {
@@ -241,7 +296,7 @@ export default function MyActivity() {
             if (key.startsWith('readingProgress:') || key.startsWith('audioProgress:')) {
               try {
                 const v = localStorage.getItem(key)
-                const obj = v ? JSON.parse(v) : null
+                const obj = v ? (JSON.parse(v) as ProgressDoc) : null
                 const ts = Number(obj?.lastActivityTs || 0)
                 if (ts > 0) i.push(ts)
                 if (key.startsWith('readingProgress:')) {
@@ -255,32 +310,40 @@ export default function MyActivity() {
                 if (key.startsWith('audioProgress:') && cts > 0) audioCompletedTs.push(cts)
                 if (key.startsWith('readingProgress:') && ts > 0) readingLastTs.push(ts)
                 if (key.startsWith('audioProgress:') && ts > 0) audioLastTs.push(ts)
-              } catch {}
+              } catch {
+                // Failed to parse progress item
+              }
             }
           }
           try {
             const rawDays = localStorage.getItem('appActivityDays')
             const arr = rawDays ? JSON.parse(rawDays) : []
             if (Array.isArray(arr)) {
-              arr.forEach((d: any) => {
+              arr.forEach((d: number) => {
                 const ts = Number(d || 0)
                 if (ts > 0) i.push(ts)
               })
             }
-          } catch {}
+          } catch {
+            // Failed to read local activity days
+          }
           activityTs = i
-        } catch {}
+        } catch {
+          // Failed to process local storage
+        }
         try {
           const raw = localStorage.getItem('readingGoals')
           const list = raw ? JSON.parse(raw) : []
           if (Array.isArray(list)) {
-            list.forEach((g: any) => {
+            list.forEach((g: ReadingGoalDoc) => {
               totalTarget += Number(g?.target || g?.targetAmount || 0)
               const u = String(g?.unit || '').trim()
               if (u) units.add(u)
             })
           }
-        } catch {}
+        } catch {
+          // Failed to read local reading goals
+        }
       }
 
       const finishedList = finishedDocs.filter(
@@ -595,10 +658,13 @@ export default function MyActivity() {
     })
     const u2 = onSnapshot(collection(db, 'users', uid, 'readingTime'), (snap) => {
       readingLogs = snap.docs
-        .map((d) => ({
-          minutes: Number((d.data() as any)?.minutes || 0),
-          ts: Number((d.data() as any)?.ts || 0),
-        }))
+        .map((d) => {
+          const data = d.data() as ReadingTimeDoc
+          return {
+            minutes: Number(data?.minutes || 0),
+            ts: Number(data?.ts || 0),
+          }
+        })
         .filter((x) => x.minutes > 0 && x.ts > 0)
       recompute(
         readingLogs,
@@ -613,11 +679,17 @@ export default function MyActivity() {
     })
     const u3 = onSnapshot(collection(db, 'users', uid, 'readingProgress'), (snap) => {
       const rpLast = snap.docs
-        .map((d) => Number((d.data() as any)?.lastActivityTs || 0))
+        .map((d) => {
+          const data = d.data() as ProgressDoc
+          return Number(data?.lastActivityTs || 0)
+        })
         .filter((x) => x > 0)
       activityTs = [...rpLast]
       pdfCompletedTs = snap.docs
-        .map((d) => Number((d.data() as any)?.completedTs || 0))
+        .map((d) => {
+          const data = d.data() as ProgressDoc
+          return Number(data?.completedTs || 0)
+        })
         .filter((x) => x > 0)
       recompute(
         readingLogs,
@@ -632,16 +704,22 @@ export default function MyActivity() {
     })
     const u4 = onSnapshot(collection(db, 'users', uid, 'audioProgress'), (snap) => {
       const apLast = snap.docs
-        .map((d) => Number((d.data() as any)?.lastActivityTs || 0))
+        .map((d) => {
+          const data = d.data() as AudioProgressDoc
+          return Number(data?.lastActivityTs || 0)
+        })
         .filter((x) => x > 0)
       activityTs = [...activityTs, ...apLast]
       audioLastTs = [...apLast]
       audioCompletedTs = snap.docs
-        .map((d) => Number((d.data() as any)?.completedTs || 0))
+        .map((d) => {
+          const data = d.data() as AudioProgressDoc
+          return Number(data?.completedTs || 0)
+        })
         .filter((x) => x > 0)
       audioDurMin = Math.floor(
         snap.docs.reduce((s, d) => {
-          const data = d.data() as any
+          const data = d.data() as AudioProgressDoc
           const dur = Number(data?.durationMs || 0)
           if (Number(data?.completedTs || 0) > 0) return s + dur
           if (typeof data?.progress === 'number') return s + dur * data.progress
@@ -660,7 +738,12 @@ export default function MyActivity() {
       )
     })
     const u5 = onSnapshot(collection(db, 'users', uid, 'appActivity'), (snap) => {
-      const arr = snap.docs.map((d) => Number((d.data() as any)?.ts || 0)).filter((x) => x > 0)
+      const arr = snap.docs
+        .map((d) => {
+          const data = d.data() as AppActivityDoc
+          return Number(data?.ts || 0)
+        })
+        .filter((x) => x > 0)
       activityTs = [...activityTs, ...arr]
       recompute(
         readingLogs,
@@ -676,7 +759,7 @@ export default function MyActivity() {
     const u6 = onSnapshot(collection(db, 'users', uid, 'readingGoals'), (snap) => {
       totalTarget = 0
       units = new Set()
-      const goals = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+      const goals = snap.docs.map((d) => ({ id: d.id, ...(d.data() as ReadingGoalDoc) }))
       goals.forEach((g) => {
         if (g.id !== 'current') {
           totalTarget += Number(g?.target || g?.targetAmount || 0)
@@ -732,7 +815,7 @@ export default function MyActivity() {
                       `<tr><td>${new Date(w.date).toLocaleDateString()}</td><td>${w.reading}</td><td>${w.audio}</td></tr>`
                   )
                   .join('')
-                const html = `<!doctype html><html><head><meta charset=\"utf-8\"><title>My Activity</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding:24px;color:#0f172a}h1{font-size:20px;margin:0 0 12px}h2{font-size:16px;margin:16px 0 8px}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #e2e8f0;padding:6px;text-align:left}th{background:#f8fafc}small{color:#64748b}</style></head><body><h1>My Activity</h1><small>Generated ${new Date().toLocaleString()}</small><table><tbody><tr><th>Total Books Read</th><td>${String(totalFinished)}</td></tr><tr><th>Total Hours Read</th><td>${String(totalHM)}</td></tr><tr><th>Current Streak</th><td>${String(streak)} days</td></tr><tr><th>Reading Goal Progress</th><td>${String(goalCompleted)}/${String(goalTarget)} ${String(goalUnitLabel)} (${String(goalPercent)}%)</td></tr><tr><th>This Week</th><td>${String(weekDeltaLabel)}</td></tr></tbody></table><h2>Monthly Totals</h2><table><thead><tr><th>Month</th><th>Finished</th></tr></thead><tbody>${monthRows}</tbody></table><h2>Monthly PDF vs Audio</h2><table><thead><tr><th>Month</th><th>PDF</th><th>Audio</th></tr></thead><tbody>${lineRows}</tbody></table><h2>Weekly Activity</h2><table><thead><tr><th>Date</th><th>Reading Minutes</th><th>Audio Sessions</th></tr></thead><tbody>${weekRows}</tbody></table></body></html>`
+                const html = `<!doctype html><html><head><meta charset="utf-8"><title>My Activity</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding:24px;color:#0f172a}h1{font-size:20px;margin:0 0 12px}h2{font-size:16px;margin:16px 0 8px}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #e2e8f0;padding:6px;text-align:left}th{background:#f8fafc}small{color:#64748b}</style></head><body><h1>My Activity</h1><small>Generated ${new Date().toLocaleString()}</small><table><tbody><tr><th>Total Books Read</th><td>${String(totalFinished)}</td></tr><tr><th>Total Hours Read</th><td>${String(totalHM)}</td></tr><tr><th>Current Streak</th><td>${String(streak)} days</td></tr><tr><th>Reading Goal Progress</th><td>${String(goalCompleted)}/${String(goalTarget)} ${String(goalUnitLabel)} (${String(goalPercent)}%)</td></tr><tr><th>This Week</th><td>${String(weekDeltaLabel)}</td></tr></tbody></table><h2>Monthly Totals</h2><table><thead><tr><th>Month</th><th>Finished</th></tr></thead><tbody>${monthRows}</tbody></table><h2>Monthly PDF vs Audio</h2><table><thead><tr><th>Month</th><th>PDF</th><th>Audio</th></tr></thead><tbody>${lineRows}</tbody></table><h2>Weekly Activity</h2><table><thead><tr><th>Date</th><th>Reading Minutes</th><th>Audio Sessions</th></tr></thead><tbody>${weekRows}</tbody></table></body></html>`
                 const w = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1200')
                 if (!w) return
                 w.document.open()
@@ -740,7 +823,9 @@ export default function MyActivity() {
                 w.document.close()
                 w.focus()
                 w.print()
-              } catch {}
+              } catch {
+                // Failed to open print window
+              }
             }}
           >
             Download PDF document

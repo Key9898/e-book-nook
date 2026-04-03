@@ -21,6 +21,7 @@ interface PdfFiltersSidebarProps {
   onToggle: (sectionId: string, value: string) => void
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const defaultFilters: Section[] = [
   {
     id: 'bookLanguages',

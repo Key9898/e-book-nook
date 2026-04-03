@@ -58,6 +58,13 @@ export default function AudioPlayer({
     else if (typeof window !== 'undefined') window.history.back()
   }
 
+  interface RecentlyViewedItem {
+    id: string
+    title?: string
+    coverUrl?: string
+    ts?: number
+  }
+
   // Recently Viewed Logic
   useEffect(() => {
     const uid = localStorage.getItem('auth_user')
@@ -71,30 +78,37 @@ export default function AudioPlayer({
           { merge: true }
         )
       } catch {
+        // Failed to save to Firestore, falling back to localStorage
         try {
           const raw = localStorage.getItem('recentlyViewed')
-          const list = raw ? JSON.parse(raw) : []
+          const list: RecentlyViewedItem[] = raw ? JSON.parse(raw) : []
           const next = [
             { id: bookId, title, coverUrl, ts },
-            ...list.filter((i: any) => i.id !== bookId),
+            ...list.filter((i) => i.id !== bookId),
           ]
           localStorage.setItem('recentlyViewed', JSON.stringify(next.slice(0, 20)))
-        } catch {}
+        } catch {
+          // Failed to save to localStorage fallback
+        }
       }
     } else {
       try {
         const raw = localStorage.getItem('recentlyViewed')
-        const list = raw ? JSON.parse(raw) : []
+        const list: RecentlyViewedItem[] = raw ? JSON.parse(raw) : []
         const next = [
           { id: bookId, title, coverUrl, ts },
-          ...list.filter((i: any) => i.id !== bookId),
+          ...list.filter((i) => i.id !== bookId),
         ]
         localStorage.setItem('recentlyViewed', JSON.stringify(next.slice(0, 20)))
-      } catch {}
+      } catch {
+        // Failed to save to localStorage
+      }
     }
     try {
       window.dispatchEvent(new CustomEvent('recentlyViewed:update'))
-    } catch {}
+    } catch {
+      // Failed to dispatch recentlyViewed update event
+    }
   }, [bookId, title, coverUrl])
 
   const audioKey = useMemo(() => {
@@ -109,11 +123,15 @@ export default function AudioPlayer({
       progressRef.current = updateAudioOnOpen(loaded ?? progressRef.current)
       try {
         await saveAudioProgress(bookId, progressRef.current)
-      } catch {}
+      } catch {
+        // Failed to save audio progress
+      }
       if (loaded && audioRef.current && typeof loaded.positionMs === 'number') {
         try {
           audioRef.current.currentTime = Math.max(0, loaded.positionMs / 1000)
-        } catch {}
+        } catch {
+          // Failed to set audio current time
+        }
       }
     })()
   }, [bookId])
@@ -139,6 +157,7 @@ export default function AudioPlayer({
         try {
           await saveAudioProgress(bookId, progressRef.current)
         } catch {
+          // Failed to save audio progress on time update
         } finally {
           saveTimer.current = null
         }
@@ -192,8 +211,16 @@ export default function AudioPlayer({
         setReviews(list)
       })
       return () => unsub()
-    } catch {}
+    } catch {
+      // Failed to subscribe to reviews
+    }
   }, [audioKey])
+
+  interface FavoriteItem {
+    id: string
+    title?: string
+    coverUrl?: string
+  }
 
   const addFavorite = async () => {
     const uid = localStorage.getItem('auth_user')
@@ -203,22 +230,28 @@ export default function AudioPlayer({
         await setDoc(doc(db, 'users', uid, 'favorites', bookId), { id: bookId, title, coverUrl })
         try {
           window.dispatchEvent(new CustomEvent('favorites:update'))
-        } catch {}
+        } catch {
+          // Failed to dispatch favorites update event
+        }
         try {
           window.dispatchEvent(
             new CustomEvent('app:notify', {
               detail: { type: 'success', title: 'Added to favorites', message: title ?? bookId },
             })
           )
-        } catch {}
+        } catch {
+          // Failed to dispatch notification event
+        }
         setOpenFav(true)
         return
-      } catch {}
+      } catch {
+        // Failed to save favorite to Firestore
+      }
     }
     try {
       const raw = localStorage.getItem('favorites')
-      const list = raw ? JSON.parse(raw) : []
-      if (!list.find((i: any) => i.id === bookId)) {
+      const list: FavoriteItem[] = raw ? JSON.parse(raw) : []
+      if (!list.find((i) => i.id === bookId)) {
         const next = [{ id: bookId, title, coverUrl }, ...list]
         localStorage.setItem('favorites', JSON.stringify(next))
         try {
@@ -227,7 +260,9 @@ export default function AudioPlayer({
               detail: { type: 'success', title: 'Added to favorites', message: title ?? bookId },
             })
           )
-        } catch {}
+        } catch {
+          // Failed to dispatch notification event
+        }
       } else {
         try {
           window.dispatchEvent(
@@ -235,13 +270,19 @@ export default function AudioPlayer({
               detail: { type: 'success', title: 'Already in favorites', message: title ?? bookId },
             })
           )
-        } catch {}
+        } catch {
+          // Failed to dispatch notification event
+        }
       }
       try {
         window.dispatchEvent(new CustomEvent('favorites:update'))
-      } catch {}
+      } catch {
+        // Failed to dispatch favorites update event
+      }
       setOpenFav(true)
-    } catch {}
+    } catch {
+      // Failed to save favorite to localStorage
+    }
   }
 
   return (

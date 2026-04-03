@@ -21,6 +21,23 @@ type GoalItem = {
   unit: 'PdfBooks' | 'AudioBooks'
 }
 
+interface GoalDoc {
+  name?: string
+  goalName?: string
+  target?: number
+  targetAmount?: number
+  deadlineTs?: number
+  unit?: string
+}
+
+interface ProgressDoc {
+  completedTs?: number
+}
+
+interface AuthWithApp {
+  app?: unknown
+}
+
 export default function ListView({ onSwitchToMap }: { onSwitchToMap?: () => void }) {
   const [user, setUser] = useState<User | null>(auth?.currentUser || null)
   const [goals, setGoals] = useState<GoalItem[]>([])
@@ -30,7 +47,7 @@ export default function ListView({ onSwitchToMap }: { onSwitchToMap?: () => void
   const [audioCompleted, setAudioCompleted] = useState(0)
 
   useEffect(() => {
-    if (!(auth as any)?.app) return
+    if (!(auth as AuthWithApp)?.app) return
     const unsub = onAuthStateChanged(auth, (u) => setUser(u))
     return () => unsub()
   }, [])
@@ -43,32 +60,36 @@ export default function ListView({ onSwitchToMap }: { onSwitchToMap?: () => void
         try {
           const snap = await getDocs(collection(db, 'users', uid, 'readingGoals'))
           snap.docs.forEach((d) => {
-            const v = d.data() as any
+            const v = d.data() as GoalDoc
             if (d.id !== 'current')
               list.push({
                 id: d.id,
                 name: String(v.name || v.goalName || ''),
                 target: Number(v.target || v.targetAmount || 0),
                 deadlineTs: v.deadlineTs ? Number(v.deadlineTs) : undefined,
-                unit: String(v.unit || 'PdfBooks') as any,
+                unit: String(v.unit || 'PdfBooks') as GoalItem['unit'],
               })
           })
-        } catch {}
+        } catch {
+          // Firestore read failed
+        }
       } else {
         try {
           const raw = localStorage.getItem('readingGoals')
           const arr = raw ? JSON.parse(raw) : []
           if (Array.isArray(arr))
-            arr.forEach((v: any, idx: number) =>
+            arr.forEach((v: GoalDoc, idx: number) =>
               list.push({
                 id: v.id || String(idx + 1),
                 name: String(v.name || v.goalName || ''),
                 target: Number(v.target || v.targetAmount || 0),
                 deadlineTs: v.deadlineTs ? Number(v.deadlineTs) : undefined,
-                unit: String(v.unit || 'PdfBooks') as any,
+                unit: String(v.unit || 'PdfBooks') as GoalItem['unit'],
               })
             )
-        } catch {}
+        } catch {
+          // Local storage parse failed
+        }
       }
       setGoals(list)
     })()
@@ -82,12 +103,16 @@ export default function ListView({ onSwitchToMap }: { onSwitchToMap?: () => void
       if (uid && db) {
         try {
           const rp = await getDocs(collection(db, 'users', uid, 'readingProgress'))
-          pc = rp.docs.filter((d) => Number((d.data() as any)?.completedTs || 0) > 0).length
-        } catch {}
+          pc = rp.docs.filter((d) => Number((d.data() as ProgressDoc)?.completedTs || 0) > 0).length
+        } catch {
+          // Reading progress fetch failed
+        }
         try {
           const ap = await getDocs(collection(db, 'users', uid, 'audioProgress'))
-          ac = ap.docs.filter((d) => Number((d.data() as any)?.completedTs || 0) > 0).length
-        } catch {}
+          ac = ap.docs.filter((d) => Number((d.data() as ProgressDoc)?.completedTs || 0) > 0).length
+        } catch {
+          // Audio progress fetch failed
+        }
       } else {
         try {
           for (let k = 0; k < localStorage.length; k++) {
@@ -103,7 +128,9 @@ export default function ListView({ onSwitchToMap }: { onSwitchToMap?: () => void
               if (Number(v?.completedTs || 0) > 0) ac += 1
             }
           }
-        } catch {}
+        } catch {
+          // Local storage iteration failed
+        }
       }
       setPdfCompleted(pc)
       setAudioCompleted(ac)
@@ -136,11 +163,13 @@ export default function ListView({ onSwitchToMap }: { onSwitchToMap?: () => void
               createdAt: serverTimestamp(),
             })
           }
-        } catch {}
+        } catch {
+          // Firestore write failed
+        }
       } else {
         try {
           const raw = localStorage.getItem('readingGoals')
-          const arr: any[] = raw ? JSON.parse(raw) : []
+          const arr: GoalItem[] = raw ? JSON.parse(raw) : []
           if (editing) {
             const idx = arr.findIndex((g) => g.id === editing.id)
             if (idx >= 0)
@@ -161,7 +190,9 @@ export default function ListView({ onSwitchToMap }: { onSwitchToMap?: () => void
             })
           }
           localStorage.setItem('readingGoals', JSON.stringify(arr))
-        } catch {}
+        } catch {
+          // Local storage write failed
+        }
       }
       setOpenForm(false)
       setEditing(null)
@@ -174,16 +205,20 @@ export default function ListView({ onSwitchToMap }: { onSwitchToMap?: () => void
       if (uid && db && g.id) {
         try {
           await deleteDoc(doc(db, 'users', uid, 'readingGoals', g.id))
-        } catch {}
+        } catch {
+          // Firestore delete failed
+        }
         setGoals((prev) => prev.filter((x) => x.id !== g.id))
       } else {
         try {
           const raw = localStorage.getItem('readingGoals')
-          const arr: any[] = raw ? JSON.parse(raw) : []
+          const arr: GoalItem[] = raw ? JSON.parse(raw) : []
           const next = arr.filter((x) => x.id !== g.id)
           localStorage.setItem('readingGoals', JSON.stringify(next))
           setGoals((prev) => prev.filter((x) => x.id !== g.id))
-        } catch {}
+        } catch {
+          // Local storage delete failed
+        }
       }
     })()
   }

@@ -25,6 +25,18 @@ type CommentItem = {
   reviewId: string
 }
 
+interface CommentDoc {
+  text?: string
+  createdAt?: Timestamp
+  userId?: string
+  uid?: string
+  authorId?: string
+}
+
+interface ReviewDoc {
+  bookType?: string
+}
+
 export default function MyComments() {
   const [uid, setUid] = useState<string>('')
   const [items, setItems] = useState<CommentItem[]>([])
@@ -32,10 +44,12 @@ export default function MyComments() {
   const [editingText, setEditingText] = useState('')
 
   useEffect(() => {
-    if (!(auth as any)?.app) return
+    if (!auth?.app) return
     try {
       setUid(auth?.currentUser?.uid || '')
-    } catch {}
+    } catch {
+      // Failed to get current user
+    }
     const unsub = onAuthStateChanged(auth!, (u) => setUid(u?.uid || ''))
     return () => unsub()
   }, [])
@@ -53,7 +67,7 @@ export default function MyComments() {
         qq,
         (snap) => {
           const list: CommentItem[] = snap.docs.map((d) => {
-            const v = d.data() as any
+            const v = d.data() as CommentDoc
             const rid = d.ref.parent.parent?.id || ''
             return {
               id: d.id,
@@ -73,7 +87,9 @@ export default function MyComments() {
           )
           setItems(merged)
         },
-        () => {}
+        () => {
+          // Snapshot listener error - silently ignore
+        }
       )
     )
     return () => {
@@ -92,14 +108,16 @@ export default function MyComments() {
         try {
           const snap = await getDoc(doc(db, 'reviews', id))
           if (snap.exists()) {
-            const data = snap.data() as any
+            const data = snap.data() as ReviewDoc
             setReviewMeta((prev) => ({ ...prev, [id]: { bookType: String(data.bookType || '') } }))
           }
-        } catch {}
+        } catch {
+          // Failed to load review metadata
+        }
       }
     }
     load()
-  }, [items])
+  }, [items, reviewMeta])
 
   const docRefFromPath = (p: string) => doc(db!, p)
 
@@ -121,7 +139,9 @@ export default function MyComments() {
       const idx = parts.indexOf('reviews')
       const reviewId = idx >= 0 ? parts[idx + 1] : ''
       if (reviewId) await updateDoc(doc(db!, 'reviews', reviewId), { commentCount: increment(-1) })
-    } catch {}
+    } catch {
+      // Failed to update comment count
+    }
     setItems((prev) => prev.filter((x) => x.id !== it.id))
   }
 

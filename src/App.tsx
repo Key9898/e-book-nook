@@ -79,7 +79,7 @@ function App() {
   const [lastPageBeforeAuth, setLastPageBeforeAuth] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!(auth as any)?.app) return
+    if (!auth?.app) return
     const unsub = onAuthStateChanged(auth, (user) => setCurrentUser(user))
     return () => unsub()
   }, [])
@@ -103,8 +103,8 @@ function App() {
       setLastPageBeforeAuth(currentPage)
       setAccountSettingIntent(true)
     }
-    window.addEventListener('app:intent:accountSetting', handler as any)
-    return () => window.removeEventListener('app:intent:accountSetting', handler as any)
+    window.addEventListener('app:intent:accountSetting', handler)
+    return () => window.removeEventListener('app:intent:accountSetting', handler)
   }, [currentPage])
 
   useEffect(() => {
@@ -117,7 +117,7 @@ function App() {
       setAccountSettingIntent(false)
       setLastPageBeforeAuth(null)
     }
-  }, [currentUser])
+  }, [currentUser, accountSettingIntent, currentPage, lastPageBeforeAuth])
 
   const renderPage = () => {
     switch (currentPage) {

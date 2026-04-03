@@ -64,7 +64,7 @@ export default function SignIn({
                 const email = String(fd.get('email') || '')
                 const password = String(fd.get('password') || '')
                 const remember = fd.get('remember-me') !== null
-                if (!auth || !(auth as any).app) {
+                if (!auth || !auth.app) {
                   window.dispatchEvent(
                     new CustomEvent('app:notify', {
                       detail: {
@@ -92,9 +92,10 @@ export default function SignIn({
                     })
                   )
                   onClose?.()
-                } catch (err: any) {
+                } catch (err: unknown) {
+                  const error = err as { code?: string }
                   let msg = 'Sign in failed. Please try again.'
-                  switch (err?.code) {
+                  switch (error?.code) {
                     case 'auth/invalid-credential':
                     case 'auth/wrong-password':
                       msg = 'Email or password is incorrect.'
@@ -118,7 +119,7 @@ export default function SignIn({
                     default:
                       break
                   }
-                  console.error('[SignIn] Error:', err?.code || err)
+                  console.error('[SignIn] Error:', error?.code || err)
                   window.dispatchEvent(
                     new CustomEvent('app:notify', {
                       detail: { type: 'error', title: 'Sign in error', message: msg },
@@ -214,7 +215,7 @@ export default function SignIn({
                   <button
                     type="button"
                     onClick={async () => {
-                      if (!auth || !(auth as any).app) {
+                      if (!auth || !auth.app) {
                         window.dispatchEvent(
                           new CustomEvent('app:notify', {
                             detail: {
@@ -299,9 +300,10 @@ export default function SignIn({
                             })
                           )
                         }
-                      } catch (err: any) {
+                      } catch (err: unknown) {
+                        const error = err as { code?: string }
                         let msg = 'Could not send reset email.'
-                        switch (err?.code) {
+                        switch (error?.code) {
                           case 'auth/user-not-found':
                             msg = 'No account found with this email.'
                             break
@@ -346,7 +348,7 @@ export default function SignIn({
                 <button
                   type="button"
                   onClick={async () => {
-                    if (!auth || !(auth as any).app) {
+                    if (!auth || !auth.app) {
                       window.dispatchEvent(
                         new CustomEvent('app:notify', {
                           detail: {
@@ -371,9 +373,10 @@ export default function SignIn({
                         })
                       )
                       onClose?.()
-                    } catch (err: any) {
+                    } catch (err: unknown) {
+                      const error = err as { code?: string }
                       let msg = 'Google sign-in failed. Please try again.'
-                      switch (err?.code) {
+                      switch (error?.code) {
                         case 'auth/popup-closed-by-user':
                         case 'auth/cancelled-popup-request':
                           msg = 'Sign-in was cancelled.'
@@ -387,7 +390,7 @@ export default function SignIn({
                         default:
                           break
                       }
-                      console.error('[GoogleSignIn] Error:', err?.code || err)
+                      console.error('[GoogleSignIn] Error:', error?.code || err)
                       window.dispatchEvent(
                         new CustomEvent('app:notify', {
                           detail: { type: 'error', title: 'Sign in error', message: msg },
