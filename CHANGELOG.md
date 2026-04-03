@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (2026-04-04 - TypeScript Build Errors)
+
+- **ListView.tsx** - Added `id?: string` to `GoalDoc` interface to fix missing property error
+- **ListView.tsx** - Added explicit null check for `auth` before calling `onAuthStateChanged`
+- **ReadingGoals.tsx** - Removed `extends WheelEvent` from `WheelEventWithDelta` interface to fix incompatible type extension
+- **ReadingGoals.tsx** - Updated `flowRef` type to `ReactFlowInstance<Node, Edge>` for proper generic typing
+- **ReadingGoals.tsx** - Replaced deprecated `project()` method with `screenToFlowPosition()` (ReactFlow v11+ API)
+- **ReadingGoals.tsx** - Added type casting `as unknown as ReactFlowInstance<Node, Edge>` in `onInit` callback
+
 ### Added
 
 - **New Favicon System** - Designed and implemented a new "Open Book + Lightbulb" favicon conceptually aligned with the brand.

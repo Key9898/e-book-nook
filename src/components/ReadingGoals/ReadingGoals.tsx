@@ -55,7 +55,7 @@ interface StoredEdge {
   target: string
 }
 
-interface WheelEventWithDelta extends WheelEvent {
+interface WheelEventWithDelta {
   deltaY?: number
   ctrlKey?: boolean
 }
@@ -74,7 +74,7 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const lastZoomRef = useRef<number>(1)
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const flowRef = useRef<ReactFlowInstance | null>(null)
+  const flowRef = useRef<ReactFlowInstance<Node, Edge> | null>(null)
   const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({
     width: 0,
     height: 0,
@@ -554,14 +554,14 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
                         (rect?.left ?? 0) + (rect?.width ?? (containerSize.width || 800)) / 2
                       const py =
                         (rect?.top ?? 0) + (rect?.height ?? (containerSize.height || 480)) / 2
-                      const projected = flowRef.current?.project?.({ x: px, y: py })
+                      const projected = flowRef.current?.screenToFlowPosition({ x: px, y: py })
                       if (projected) lastCenterRef.current = { x: projected.x, y: projected.y }
                     } catch {
                       // Project failed
                     }
                   }}
                   onInit={(inst) => {
-                    flowRef.current = inst
+                    flowRef.current = inst as unknown as ReactFlowInstance<Node, Edge>
                   }}
                   fitView
                 >

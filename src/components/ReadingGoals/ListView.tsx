@@ -22,6 +22,7 @@ type GoalItem = {
 }
 
 interface GoalDoc {
+  id?: string
   name?: string
   goalName?: string
   target?: number
@@ -47,6 +48,7 @@ export default function ListView({ onSwitchToMap }: { onSwitchToMap?: () => void
   const [audioCompleted, setAudioCompleted] = useState(0)
 
   useEffect(() => {
+    if (!auth) return
     if (!(auth as AuthWithApp)?.app) return
     const unsub = onAuthStateChanged(auth, (u) => setUser(u))
     return () => unsub()
