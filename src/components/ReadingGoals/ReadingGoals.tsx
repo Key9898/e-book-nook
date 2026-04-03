@@ -9,10 +9,30 @@ import Breadcrumb from '../Layouts/Breadcrumb'
 import { auth, db } from '../../firebaseConfig'
 import { onAuthStateChanged, type User } from 'firebase/auth'
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore'
-import { ReactFlow, Controls, Background, Panel, BackgroundVariant, applyNodeChanges, applyEdgeChanges, addEdge, Handle, Position, NodeResizer, type Node, type Edge, type NodeChange, type EdgeChange, type Connection, type NodeProps } from '@xyflow/react'
+import {
+  ReactFlow,
+  Controls,
+  Background,
+  Panel,
+  BackgroundVariant,
+  applyNodeChanges,
+  applyEdgeChanges,
+  addEdge,
+  Handle,
+  Position,
+  NodeResizer,
+  type Node,
+  type Edge,
+  type NodeChange,
+  type EdgeChange,
+  type Connection,
+  type NodeProps,
+} from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
-interface ReadingGoalsProps { onNavigate?: (page: string) => void }
+interface ReadingGoalsProps {
+  onNavigate?: (page: string) => void
+}
 type EditableData = { label: string; onChange?: (id: string, v: string) => void }
 
 const initialNodes: Node[] = [
@@ -30,7 +50,10 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
   const lastZoomRef = useRef<number>(1)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const flowRef = useRef<any>(null)
-  const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 })
+  const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({
+    width: 0,
+    height: 0,
+  })
   const [editingId, setEditingId] = useState<string | null>(null)
   const lastCenterRef = useRef<{ x: number; y: number } | null>(null)
   const initialLoadedRef = useRef<boolean>(false)
@@ -42,16 +65,29 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
   function EditableNode({ id, data, selected }: NodeProps) {
     const [val, setVal] = useState<string>(String((data as EditableData)?.label ?? ''))
     const inputRef = useRef<HTMLTextAreaElement | null>(null)
-    useEffect(() => { setVal(String((data as EditableData)?.label ?? '')) }, [data])
-    useEffect(() => { if (editingId === id) inputRef.current?.focus() }, [editingId, id])
+    useEffect(() => {
+      setVal(String((data as EditableData)?.label ?? ''))
+    }, [data])
+    useEffect(() => {
+      if (editingId === id) inputRef.current?.focus()
+    }, [editingId, id])
     return (
       <div className="relative w-full h-full rounded-xl border border-slate-300 bg-white shadow">
-        <NodeResizer minWidth={120} minHeight={60} isVisible={!!selected} handleStyle={{ width: 10, height: 10 }} color="#0ea5b7" />
+        <NodeResizer
+          minWidth={120}
+          minHeight={60}
+          isVisible={!!selected}
+          handleStyle={{ width: 10, height: 10 }}
+          color="#0ea5b7"
+        />
         {editingId === id ? (
           <textarea
             ref={inputRef}
             value={val}
-            onChange={(e) => { setVal(e.target.value); (data as EditableData)?.onChange?.(id, e.target.value) }}
+            onChange={(e) => {
+              setVal(e.target.value)
+              ;(data as EditableData)?.onChange?.(id, e.target.value)
+            }}
             onBlur={() => setEditingId(null)}
             className="w-full h-full p-3 text-sm bg-transparent outline-none resize-none"
             aria-label="Edit node label"
@@ -60,7 +96,10 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
           />
         ) : (
           <div
-            onClick={(e) => { e.stopPropagation(); setEditingId(id) }}
+            onClick={(e) => {
+              e.stopPropagation()
+              setEditingId(id)
+            }}
             className="p-3 text-center text-sm font-medium text-slate-900 select-none"
           >
             {String((data as EditableData)?.label ?? '')}
@@ -97,35 +136,71 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
     if (!db || !user?.uid) return
     const ref = doc(db, 'mindmaps', user.uid)
     let first = true
-    const unsub = onSnapshot(ref, (snap) => {
-      const data = snap.data() as any
-      if (data?.nodes && data?.edges) {
-        const loadedNodes: Node[] = (data.nodes as any[]).map((n) => ({ id: String(n.id), type: 'editable', position: { x: Number(n.position?.x || 0), y: Number(n.position?.y || 0) }, data: { label: String(n?.data?.label || '') } }))
-        const loadedEdges: Edge[] = (data.edges as any[]).map((e) => ({ id: String(e.id || `${e.source}-${e.target}`), source: String(e.source), target: String(e.target) }))
-        setNodes(loadedNodes)
-        setEdges(loadedEdges)
-      }
-      if (first) {
-        first = false
+    const unsub = onSnapshot(
+      ref,
+      (snap) => {
+        const data = snap.data() as any
+        if (data?.nodes && data?.edges) {
+          const loadedNodes: Node[] = (data.nodes as any[]).map((n) => ({
+            id: String(n.id),
+            type: 'editable',
+            position: { x: Number(n.position?.x || 0), y: Number(n.position?.y || 0) },
+            data: { label: String(n?.data?.label || '') },
+          }))
+          const loadedEdges: Edge[] = (data.edges as any[]).map((e) => ({
+            id: String(e.id || `${e.source}-${e.target}`),
+            source: String(e.source),
+            target: String(e.target),
+          }))
+          setNodes(loadedNodes)
+          setEdges(loadedEdges)
+        }
+        if (first) {
+          first = false
+          initialLoadedRef.current = true
+          setTimeout(() => {
+            try {
+              flowRef.current?.fitView?.({ padding: 0.1 })
+            } catch {}
+          }, 0)
+        }
+      },
+      (err) => {
         initialLoadedRef.current = true
-        setTimeout(() => { try { flowRef.current?.fitView?.({ padding: 0.1 }) } catch {} }, 0)
-      }
-    }, (err) => {
-      initialLoadedRef.current = true
-      try { window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'error', title: 'Load failed', message: (err?.code || err?.message || 'Could not load mind map').toString() } })) } catch {}
-      if (lsKey) {
         try {
-          const raw = localStorage.getItem(lsKey)
-          if (raw) {
-            const local = JSON.parse(raw)
-            const loadedNodes: Node[] = (local?.nodes || []).map((n: any) => ({ id: String(n.id), type: 'editable', position: { x: Number(n.position?.x || 0), y: Number(n.position?.y || 0) }, data: { label: String(n?.data?.label || '') } }))
-            const loadedEdges: Edge[] = (local?.edges || []).map((e: any) => ({ id: String(e.id || `${e.source}-${e.target}`), source: String(e.source), target: String(e.target) }))
-            if (loadedNodes.length) setNodes(loadedNodes)
-            if (loadedEdges.length) setEdges(loadedEdges)
-          }
+          window.dispatchEvent(
+            new CustomEvent('app:notify', {
+              detail: {
+                type: 'error',
+                title: 'Load failed',
+                message: (err?.code || err?.message || 'Could not load mind map').toString(),
+              },
+            })
+          )
         } catch {}
+        if (lsKey) {
+          try {
+            const raw = localStorage.getItem(lsKey)
+            if (raw) {
+              const local = JSON.parse(raw)
+              const loadedNodes: Node[] = (local?.nodes || []).map((n: any) => ({
+                id: String(n.id),
+                type: 'editable',
+                position: { x: Number(n.position?.x || 0), y: Number(n.position?.y || 0) },
+                data: { label: String(n?.data?.label || '') },
+              }))
+              const loadedEdges: Edge[] = (local?.edges || []).map((e: any) => ({
+                id: String(e.id || `${e.source}-${e.target}`),
+                source: String(e.source),
+                target: String(e.target),
+              }))
+              if (loadedNodes.length) setNodes(loadedNodes)
+              if (loadedEdges.length) setEdges(loadedEdges)
+            }
+          } catch {}
+        }
       }
-    })
+    )
     return () => unsub()
   }, [db, user?.uid])
 
@@ -141,9 +216,18 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
   const persistMindMap = useCallback(async (uid: string, nodesArg: Node[], edgesArg: Edge[]) => {
     if (!db) return
     const ref = doc(db, 'mindmaps', uid)
-    const nodesDoc = nodesArg.map((n) => ({ id: n.id, type: 'editable', position: n.position, data: { label: String((n.data as any)?.label || '') } }))
+    const nodesDoc = nodesArg.map((n) => ({
+      id: n.id,
+      type: 'editable',
+      position: n.position,
+      data: { label: String((n.data as any)?.label || '') },
+    }))
     const edgesDoc = edgesArg.map((e) => ({ id: e.id, source: e.source, target: e.target }))
-    await setDoc(ref, { nodes: nodesDoc, edges: edgesDoc, updatedAt: serverTimestamp() }, { merge: true })
+    await setDoc(
+      ref,
+      { nodes: nodesDoc, edges: edgesDoc, updatedAt: serverTimestamp() },
+      { merge: true }
+    )
   }, [])
 
   const handleSave = useCallback(async () => {
@@ -151,15 +235,37 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
     try {
       setSaving(true)
       await persistMindMap(user.uid, nodes, edges)
-      try { window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'success', title: 'Saved', message: 'Mind map saved.' } })) } catch {}
+      try {
+        window.dispatchEvent(
+          new CustomEvent('app:notify', {
+            detail: { type: 'success', title: 'Saved', message: 'Mind map saved.' },
+          })
+        )
+      } catch {}
     } catch {
       try {
         if (lsKey) {
-          const nodesDoc = nodes.map((n) => ({ id: n.id, type: 'editable', position: n.position, data: { label: String((n.data as any)?.label || '') } }))
+          const nodesDoc = nodes.map((n) => ({
+            id: n.id,
+            type: 'editable',
+            position: n.position,
+            data: { label: String((n.data as any)?.label || '') },
+          }))
           const edgesDoc = edges.map((e) => ({ id: e.id, source: e.source, target: e.target }))
-          localStorage.setItem(lsKey, JSON.stringify({ nodes: nodesDoc, edges: edgesDoc, ts: Date.now() }))
+          localStorage.setItem(
+            lsKey,
+            JSON.stringify({ nodes: nodesDoc, edges: edgesDoc, ts: Date.now() })
+          )
         }
-        window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'error', title: 'Save blocked', message: 'Saved locally. Please allow App Check or deploy rules.' } }))
+        window.dispatchEvent(
+          new CustomEvent('app:notify', {
+            detail: {
+              type: 'error',
+              title: 'Save blocked',
+              message: 'Saved locally. Please allow App Check or deploy rules.',
+            },
+          })
+        )
       } catch {}
     } finally {
       setSaving(false)
@@ -173,18 +279,36 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
     saveTimerRef.current = window.setTimeout(() => {
       persistMindMap(user.uid, nodes, edges).catch((err) => {
         try {
-          window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'error', title: 'Save blocked', message: (err?.code || err?.message || 'Insufficient permissions').toString() } }))
+          window.dispatchEvent(
+            new CustomEvent('app:notify', {
+              detail: {
+                type: 'error',
+                title: 'Save blocked',
+                message: (err?.code || err?.message || 'Insufficient permissions').toString(),
+              },
+            })
+          )
         } catch {}
         try {
           if (lsKey) {
-            const nodesDoc = nodes.map((n) => ({ id: n.id, type: 'editable', position: n.position, data: { label: String((n.data as any)?.label || '') } }))
+            const nodesDoc = nodes.map((n) => ({
+              id: n.id,
+              type: 'editable',
+              position: n.position,
+              data: { label: String((n.data as any)?.label || '') },
+            }))
             const edgesDoc = edges.map((e) => ({ id: e.id, source: e.source, target: e.target }))
-            localStorage.setItem(lsKey, JSON.stringify({ nodes: nodesDoc, edges: edgesDoc, ts: Date.now() }))
+            localStorage.setItem(
+              lsKey,
+              JSON.stringify({ nodes: nodesDoc, edges: edgesDoc, ts: Date.now() })
+            )
           }
         } catch {}
       })
     }, 500)
-    return () => { if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current) }
+    return () => {
+      if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current)
+    }
   }, [nodes, edges, user?.uid])
 
   const addNode = useCallback(() => {
@@ -196,25 +320,36 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
       if (anchor) {
         pos = { x: anchor.position.x + 180, y: anchor.position.y }
       } else if (prev.length) {
-        let sx = 0, sy = 0
-        prev.forEach((n) => { sx += n.position.x; sy += n.position.y })
+        let sx = 0,
+          sy = 0
+        prev.forEach((n) => {
+          sx += n.position.x
+          sy += n.position.y
+        })
         const cx = sx / prev.length
         const cy = sy / prev.length
         pos = { x: cx + 180, y: cy }
       } else {
         pos = { x: 0, y: 0 }
       }
-      return [...prev, { id: nextId, type: 'editable', position: pos, data: { label: `Node ${prev.length + 1}` } }]
+      return [
+        ...prev,
+        { id: nextId, type: 'editable', position: pos, data: { label: `Node ${prev.length + 1}` } },
+      ]
     })
   }, [selectedIds, containerSize.width, containerSize.height])
 
   const removeSelected = useCallback(() => {
     setNodes((prev) => prev.filter((n) => !selectedIds.includes(n.id)))
-    setEdges((prev) => prev.filter((e) => !selectedIds.includes(e.source) && !selectedIds.includes(e.target)))
+    setEdges((prev) =>
+      prev.filter((e) => !selectedIds.includes(e.source) && !selectedIds.includes(e.target))
+    )
   }, [selectedIds])
 
   const onChangeLabel = useCallback((id: string, v: string) => {
-    setNodes((prev) => prev.map((n) => (n.id === id ? { ...n, data: { ...(n.data as any), label: v } } : n)))
+    setNodes((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, data: { ...(n.data as any), label: v } } : n))
+    )
   }, [])
 
   useEffect(() => {
@@ -230,15 +365,21 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
     return () => ro.disconnect()
   }, [])
 
-
   const applyTreeLayout = useCallback(() => {
     setNodes((prev) => {
       const indeg: Record<string, number> = {}
       const adj: Record<string, string[]> = {}
-      prev.forEach((n) => { indeg[n.id] = 0; adj[n.id] = [] })
-      edges.forEach((e) => { indeg[e.target] = (indeg[e.target] ?? 0) + 1; if (!adj[e.source]) adj[e.source] = []; adj[e.source].push(e.target) })
+      prev.forEach((n) => {
+        indeg[n.id] = 0
+        adj[n.id] = []
+      })
+      edges.forEach((e) => {
+        indeg[e.target] = (indeg[e.target] ?? 0) + 1
+        if (!adj[e.source]) adj[e.source] = []
+        adj[e.source].push(e.target)
+      })
       const roots = Object.keys(indeg).filter((id) => (indeg[id] ?? 0) === 0)
-      const startIds = roots.length ? roots : [prev[0]?.id].filter(Boolean) as string[]
+      const startIds = roots.length ? roots : ([prev[0]?.id].filter(Boolean) as string[])
       const levels: string[][] = []
       const visited = new Set<string>()
       let frontier = startIds
@@ -247,9 +388,11 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
         const next: string[] = []
         frontier.forEach((id) => {
           if (visited.has(id)) return
-          visited.add(id);
-          level.push(id);
-          (adj[id] || []).forEach((nx) => { if (!visited.has(nx)) next.push(nx) })
+          visited.add(id)
+          level.push(id)
+          ;(adj[id] || []).forEach((nx) => {
+            if (!visited.has(nx)) next.push(nx)
+          })
         })
         levels.push(level)
         frontier = next
@@ -282,12 +425,14 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
       })
       return prev.map((n) => ({ ...n, position: pos[n.id] ?? n.position }))
     })
-    setTimeout(() => { try { flowRef.current?.fitView?.({ padding: 0.1 }) } catch {} }, 0)
+    setTimeout(() => {
+      try {
+        flowRef.current?.fitView?.({ padding: 0.1 })
+      } catch {}
+    }, 0)
   }, [edges, containerSize.width, containerSize.height])
 
-  const breadcrumbPages = [
-    { name: 'Reading Goals', href: '#readingGoals', current: true },
-  ]
+  const breadcrumbPages = [{ name: 'Reading Goals', href: '#readingGoals', current: true }]
 
   return (
     <div className="bg-white">
@@ -301,7 +446,10 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
         preTitleSlot={<Breadcrumb pages={breadcrumbPages} onNavigate={onNavigate} variant="dark" />}
         scrollTargetId="readingGoals-content"
       />
-      <main id="readingGoals-content" className="mx-auto max-w-7xl px-5 sm:px-9 lg:px-8 pt-20 lg:pt-24 pb-20 lg:pb-24">
+      <main
+        id="readingGoals-content"
+        className="mx-auto max-w-7xl px-5 sm:px-9 lg:px-8 pt-20 lg:pt-24 pb-20 lg:pb-24"
+      >
         {user ? (
           <div className="rounded-xl shadow-xl ring-1 ring-black/5 bg-slate-50 p-2">
             {view === 'map' && (
@@ -322,11 +470,20 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
               <div
                 ref={containerRef}
                 className="h-[70vh] w-full group"
-                onWheelCapture={(e) => { if (!(e as any).ctrlKey) { const dy = (e as any).deltaY || 0; if (dy) window.scrollBy({ top: dy, behavior: 'auto' }) } }}
+                onWheelCapture={(e) => {
+                  if (!(e as any).ctrlKey) {
+                    const dy = (e as any).deltaY || 0
+                    if (dy) window.scrollBy({ top: dy, behavior: 'auto' })
+                  }
+                }}
               >
                 <ReactFlow
                   nodeTypes={nodeTypes}
-                  nodes={nodes.map((n) => ({ ...n, type: 'editable', data: { ...(n.data as any), onChange: onChangeLabel } }))}
+                  nodes={nodes.map((n) => ({
+                    ...n,
+                    type: 'editable',
+                    data: { ...(n.data as any), onChange: onChangeLabel },
+                  }))}
                   edges={edges}
                   onNodesChange={onNodesChange}
                   onEdgesChange={onEdgesChange}
@@ -339,28 +496,63 @@ export default function ReadingGoals({ onNavigate }: ReadingGoalsProps) {
                     const prev = lastZoomRef.current
                     if (vp?.zoom !== prev) {
                       const dir = (vp.zoom || 0) > (prev || 0) ? 'in' : 'out'
-                      try { console.log(`Zoom ${dir}: ${Number(vp.zoom || 0).toFixed(2)}`) } catch {}
+                      try {
+                        console.log(`Zoom ${dir}: ${Number(vp.zoom || 0).toFixed(2)}`)
+                      } catch {}
                       lastZoomRef.current = vp.zoom || prev
                     }
                     try {
                       const rect = containerRef.current?.getBoundingClientRect()
-                      const px = (rect?.left ?? 0) + ((rect?.width ?? (containerSize.width || 800)) / 2)
-                      const py = (rect?.top ?? 0) + ((rect?.height ?? (containerSize.height || 480)) / 2)
+                      const px =
+                        (rect?.left ?? 0) + (rect?.width ?? (containerSize.width || 800)) / 2
+                      const py =
+                        (rect?.top ?? 0) + (rect?.height ?? (containerSize.height || 480)) / 2
                       const projected = flowRef.current?.project?.({ x: px, y: py })
                       if (projected) lastCenterRef.current = { x: projected.x, y: projected.y }
                     } catch {}
                   }}
-                  onInit={(inst) => { flowRef.current = inst }}
+                  onInit={(inst) => {
+                    flowRef.current = inst
+                  }}
                   fitView
                 >
                   <Background variant={BackgroundVariant.Dots} gap={32} color="#CBD5E1" />
                   <Controls position="bottom-left" />
                   <Panel position="top-left" className="opacity-100 -ml-2">
                     <div className="space-x-2">
-                      <button type="button" onClick={addNode} title="Add node" className="rounded-xl bg-cyan-700 text-white px-2 py-1 text-xs font-semibold shadow hover:bg-cyan-600">+ Add</button>
-                      <button type="button" onClick={removeSelected} title="Remove selected" className="rounded-xl bg-rose-600 text-white px-2 py-1 text-xs font-semibold shadow hover:bg-rose-500">− Remove</button>
-                      <button type="button" onClick={applyTreeLayout} title="Apply tree layout" className="rounded-xl bg-indigo-600 text-white px-2 py-1 text-xs font-semibold shadow hover:bg-indigo-500">Tree Layout</button>
-                      <button type="button" onClick={handleSave} disabled={saving || !user?.uid} title="Save mind map" className="rounded-xl bg-emerald-600 disabled:opacity-50 text-white px-2 py-1 text-xs font-semibold shadow hover:bg-emerald-500">{saving ? 'Saving…' : 'Save'}</button>
+                      <button
+                        type="button"
+                        onClick={addNode}
+                        title="Add node"
+                        className="rounded-xl bg-cyan-700 text-white px-2 py-1 text-xs font-semibold shadow hover:bg-cyan-600"
+                      >
+                        + Add
+                      </button>
+                      <button
+                        type="button"
+                        onClick={removeSelected}
+                        title="Remove selected"
+                        className="rounded-xl bg-rose-600 text-white px-2 py-1 text-xs font-semibold shadow hover:bg-rose-500"
+                      >
+                        − Remove
+                      </button>
+                      <button
+                        type="button"
+                        onClick={applyTreeLayout}
+                        title="Apply tree layout"
+                        className="rounded-xl bg-indigo-600 text-white px-2 py-1 text-xs font-semibold shadow hover:bg-indigo-500"
+                      >
+                        Tree Layout
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSave}
+                        disabled={saving || !user?.uid}
+                        title="Save mind map"
+                        className="rounded-xl bg-emerald-600 disabled:opacity-50 text-white px-2 py-1 text-xs font-semibold shadow hover:bg-emerald-500"
+                      >
+                        {saving ? 'Saving…' : 'Save'}
+                      </button>
                     </div>
                   </Panel>
                 </ReactFlow>

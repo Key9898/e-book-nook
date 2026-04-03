@@ -2,7 +2,16 @@ import { useEffect, useState } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { ListBulletIcon } from '@heroicons/react/24/solid'
 import { auth, db } from '../../../firebaseConfig'
-import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore'
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc,
+  Timestamp,
+} from 'firebase/firestore'
 import { FaFilePdf } from 'react-icons/fa6'
 import { LuFileAudio } from 'react-icons/lu'
 
@@ -36,17 +45,37 @@ export default function MyReviews() {
       query(collection(db, 'reviews'), where('uid', '==', uid)),
       query(collection(db, 'reviews'), where('authorId', '==', uid)),
     ]
-    const unsubs = qs.map((qq) => onSnapshot(qq, (snap) => {
-      const list: ReviewItem[] = snap.docs.map((d) => {
-        const v = d.data() as any
-        return { id: d.id, content: String(v.text || v.content || ''), rating: Number(v.rating || 0), country: v.country, bookType: v.bookType, createdAt: v.createdAt }
-      })
-      list.forEach((it) => { bag[it.id] = it })
-      const merged = Object.values(bag)
-      merged.sort((a, b) => Number((b?.createdAt?.toMillis?.() ?? 0)) - Number((a?.createdAt?.toMillis?.() ?? 0)))
-      setItems(merged)
-    }, () => {}))
-    return () => { unsubs.forEach((u) => u()) }
+    const unsubs = qs.map((qq) =>
+      onSnapshot(
+        qq,
+        (snap) => {
+          const list: ReviewItem[] = snap.docs.map((d) => {
+            const v = d.data() as any
+            return {
+              id: d.id,
+              content: String(v.text || v.content || ''),
+              rating: Number(v.rating || 0),
+              country: v.country,
+              bookType: v.bookType,
+              createdAt: v.createdAt,
+            }
+          })
+          list.forEach((it) => {
+            bag[it.id] = it
+          })
+          const merged = Object.values(bag)
+          merged.sort(
+            (a, b) =>
+              Number(b?.createdAt?.toMillis?.() ?? 0) - Number(a?.createdAt?.toMillis?.() ?? 0)
+          )
+          setItems(merged)
+        },
+        () => {}
+      )
+    )
+    return () => {
+      unsubs.forEach((u) => u())
+    }
   }, [uid])
 
   const startEdit = (it: ReviewItem) => {
@@ -90,8 +119,20 @@ export default function MyReviews() {
         <div className="text-sm font-semibold text-yellow-400">{it.rating}★</div>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button type='button' onClick={() => startEdit(it)} className="rounded-xl bg-cyan-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-cyan-500">Edit</button>
-        <button type='button' onClick={() => remove(it.id)} className="rounded-xl bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-500">Delete</button>
+        <button
+          type="button"
+          onClick={() => startEdit(it)}
+          className="rounded-xl bg-cyan-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-cyan-500"
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={() => remove(it.id)}
+          className="rounded-xl bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-500"
+        >
+          Delete
+        </button>
       </div>
     </div>
   )
@@ -107,7 +148,9 @@ export default function MyReviews() {
         <div className="mt-6 text-slate-600">No reviews yet.</div>
       ) : (
         <div className="mt-6 space-y-3">
-          {items.map((it) => <ItemCard key={it.id} it={it} />)}
+          {items.map((it) => (
+            <ItemCard key={it.id} it={it} />
+          ))}
         </div>
       )}
 
@@ -118,18 +161,58 @@ export default function MyReviews() {
             <div className="w-full max-w-md rounded-xl bg-white p-4 shadow-lg">
               <div className="text-lg font-semibold text-slate-900">Edit Review</div>
               <div className="mt-3">
-                <label htmlFor="edit-review-content" className="block text-sm font-medium text-slate-700">Content</label>
-                <textarea id="edit-review-content" title="Review content" placeholder="Update your review" value={editingText} onChange={(e) => setEditingText(e.target.value)} rows={4} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2" />
+                <label
+                  htmlFor="edit-review-content"
+                  className="block text-sm font-medium text-slate-700"
+                >
+                  Content
+                </label>
+                <textarea
+                  id="edit-review-content"
+                  title="Review content"
+                  placeholder="Update your review"
+                  value={editingText}
+                  onChange={(e) => setEditingText(e.target.value)}
+                  rows={4}
+                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
+                />
               </div>
               <div className="mt-3">
-                <label htmlFor="edit-review-rating" className="block text-sm font-medium text-slate-700">Rating</label>
-                <select id="edit-review-rating" title="Review rating" value={editingRating} onChange={(e) => setEditingRating(Number(e.target.value))} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2">
-                  {[5,4,3,2,1].map((r) => <option key={r} value={r}>{r} stars</option>)}
+                <label
+                  htmlFor="edit-review-rating"
+                  className="block text-sm font-medium text-slate-700"
+                >
+                  Rating
+                </label>
+                <select
+                  id="edit-review-rating"
+                  title="Review rating"
+                  value={editingRating}
+                  onChange={(e) => setEditingRating(Number(e.target.value))}
+                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2"
+                >
+                  {[5, 4, 3, 2, 1].map((r) => (
+                    <option key={r} value={r}>
+                      {r} stars
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="mt-4 flex justify-end gap-2">
-                <button type="button" onClick={() => setEditingId('')} className="rounded-xl bg-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-900">Cancel</button>
-                <button type="button" onClick={saveEdit} className="rounded-xl bg-cyan-700 px-3 py-1.5 text-sm font-semibold text-white">Save</button>
+                <button
+                  type="button"
+                  onClick={() => setEditingId('')}
+                  className="rounded-xl bg-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-900"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={saveEdit}
+                  className="rounded-xl bg-cyan-700 px-3 py-1.5 text-sm font-semibold text-white"
+                >
+                  Save
+                </button>
               </div>
             </div>
           </div>

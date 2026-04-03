@@ -14,7 +14,13 @@ import {
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { ListBulletIcon } from '@heroicons/react/24/solid'
 import { StarIcon } from '@heroicons/react/20/solid'
-import { ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon, Squares2X2Icon } from '@heroicons/react/20/solid'
+import {
+  ChevronDownIcon,
+  FunnelIcon,
+  MinusIcon,
+  PlusIcon,
+  Squares2X2Icon,
+} from '@heroicons/react/20/solid'
 import Header from '../../Layouts/Header'
 import Footer from '../../Layouts/Footer'
 import ScrollToTopButton from '../../Layouts/ScrollUpToTopButton'
@@ -50,7 +56,12 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
   const postsPerPage = 20
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [sortBy, setSortBy] = useState<'best' | 'latest' | 'az' | 'za'>('best')
-  const [activePdf, setActivePdf] = useState<{ id: string; title: string; cover?: string; fileUrl: string } | null>(null)
+  const [activePdf, setActivePdf] = useState<{
+    id: string
+    title: string
+    cover?: string
+    fileUrl: string
+  } | null>(null)
   const [reviewCounts, setReviewCounts] = useState<Record<string, number>>({})
   const [avgRatings, setAvgRatings] = useState<Record<string, number>>({})
 
@@ -110,7 +121,14 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
     })
     setCurrentPage(1)
   }
-  type BaseBookItem = { id: string; title: string; author: string; language: 'english' | 'myanmar'; tags: string[]; cover: string }
+  type BaseBookItem = {
+    id: string
+    title: string
+    author: string
+    language: 'english' | 'myanmar'
+    tags: string[]
+    cover: string
+  }
   type BookItem = BaseBookItem & { fileUrl: string }
 
   const books: BookItem[] = [
@@ -159,7 +177,9 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
   const matches = (b: BookItem) => {
     const lang = selected['bookLanguages']
     if (lang && lang.size && !lang.has(b.language)) return false
-    const activeKeys = Object.keys(selected).filter((k) => k !== 'bookLanguages' && selected[k]?.size)
+    const activeKeys = Object.keys(selected).filter(
+      (k) => k !== 'bookLanguages' && selected[k]?.size
+    )
     if (activeKeys.length) {
       const ok = activeKeys.some((k) => [...(selected[k] ?? [])].some((v) => b.tags.includes(v)))
       if (!ok) return false
@@ -168,8 +188,8 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
   }
   const filteredBooks = books.filter(matches)
   const idNum = (id: string) => Number(id.replace(/\D+/g, '')) || 0
-  const ratingFor = (b: BookItem) => (avgRatings[pdfKey(b.title)] ?? 0)
-  const countFor = (b: BookItem) => (reviewCounts[pdfKey(b.title)] ?? 0)
+  const ratingFor = (b: BookItem) => avgRatings[pdfKey(b.title)] ?? 0
+  const countFor = (b: BookItem) => reviewCounts[pdfKey(b.title)] ?? 0
   const sortedBooks = [...filteredBooks].sort((a, b) => {
     if (sortBy === 'best') {
       const ra = ratingFor(a)
@@ -215,7 +235,11 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
       />
       <div>
         {/* Mobile filter dialog */}
-        <Dialog open={mobileFiltersOpen} onClose={setMobileFiltersOpen} className="relative z-40 lg:hidden">
+        <Dialog
+          open={mobileFiltersOpen}
+          onClose={setMobileFiltersOpen}
+          className="relative z-40 lg:hidden"
+        >
           <DialogBackdrop
             transition
             className="fixed inset-0 bg-black/25 transition-opacity duration-300 ease-linear data-closed:opacity-0"
@@ -243,13 +267,20 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
               <form className="mt-4 rounded-xl shadow-xl ring-1 ring-black/5 bg-white border border-gray-200 p-4">
                 <h3 className="sr-only">Categories</h3>
                 {filters.map((section) => (
-                  <Disclosure key={section.id} as="div" className="border-t border-gray-200 px-4 py-6">
+                  <Disclosure
+                    key={section.id}
+                    as="div"
+                    className="border-t border-gray-200 px-4 py-6"
+                  >
                     <h3 className="-mx-2 -my-3 flow-root">
                       <DisclosureButton className="group flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400 hover:text-gray-500">
                         <span className="font-medium text-gray-900">{section.name}</span>
                         <span className="ml-6 flex items-center">
                           <PlusIcon aria-hidden="true" className="size-5 group-data-open:hidden" />
-                          <MinusIcon aria-hidden="true" className="size-5 group-not-data-open:hidden" />
+                          <MinusIcon
+                            aria-hidden="true"
+                            className="size-5 group-not-data-open:hidden"
+                          />
                         </span>
                       </DisclosureButton>
                     </h3>
@@ -326,16 +357,26 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                 >
                   <div className="py-1">
                     {sortOptions.map((option) => {
-                      const key = option.name === 'Best Rating' ? 'best' : option.name === 'Latest' ? 'latest' : option.name === 'Name: A to Z' ? 'az' : 'za'
+                      const key =
+                        option.name === 'Best Rating'
+                          ? 'best'
+                          : option.name === 'Latest'
+                            ? 'latest'
+                            : option.name === 'Name: A to Z'
+                              ? 'az'
+                              : 'za'
                       const isCurrent = sortBy === (key as any)
                       return (
                         <MenuItem key={option.name}>
                           <button
                             type="button"
-                            onClick={() => { setSortBy(key as any); setCurrentPage(1) }}
+                            onClick={() => {
+                              setSortBy(key as any)
+                              setCurrentPage(1)
+                            }}
                             className={classNames(
                               isCurrent ? 'font-medium text-gray-900' : 'text-gray-500',
-                              'block w-full text-left px-4 py-2 text-sm data-focus:bg-gray-100 data-focus:outline-hidden',
+                              'block w-full text-left px-4 py-2 text-sm data-focus:bg-gray-100 data-focus:outline-hidden'
                             )}
                           >
                             {option.name}
@@ -347,7 +388,11 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                 </MenuItems>
               </Menu>
 
-              <button type="button" onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} className="-m-2 ml-5 p-2 text-gray-400 hover:text-gray-500 sm:ml-7">
+              <button
+                type="button"
+                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                className="-m-2 ml-5 p-2 text-gray-400 hover:text-gray-500 sm:ml-7"
+              >
                 <span className="sr-only">{viewMode === 'grid' ? 'View list' : 'View grid'}</span>
                 {viewMode === 'grid' ? (
                   <ListBulletIcon aria-hidden="true" className="size-5" />
@@ -355,10 +400,7 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                   <Squares2X2Icon aria-hidden="true" className="size-5" />
                 )}
               </button>
-              <button
-                type="button"
-                className="hidden"
-              >
+              <button type="button" className="hidden">
                 <span className="sr-only">Filters</span>
                 <FunnelIcon aria-hidden="true" className="size-5" />
               </button>
@@ -385,10 +427,17 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                 {viewMode === 'grid' ? (
                   <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
                     {pagedBooks.map((b) => (
-                      <div key={b.id} className="relative rounded-xl ring-1 ring-black/5 bg-white shadow-sm overflow-hidden flex flex-col h-full">
+                      <div
+                        key={b.id}
+                        className="relative rounded-xl ring-1 ring-black/5 bg-white shadow-sm overflow-hidden flex flex-col h-full"
+                      >
                         <div className="relative h-40 w-full">
                           {b.cover ? (
-                            <img src={b.cover} alt={b.title} className="h-full w-full object-cover" />
+                            <img
+                              src={b.cover}
+                              alt={b.title}
+                              className="h-full w-full object-cover"
+                            />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center bg-slate-100">
                               <FaFilePdf aria-hidden className="size-10 text-slate-500" />
@@ -405,10 +454,28 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                             <div className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-xl bg-white/70 backdrop-blur px-2 py-1 text-xs font-medium text-slate-800 ring-1 ring-white/30 shadow-sm">
                               <StarIcon aria-hidden className="size-4 text-yellow-400" />
                               <span>{(avgRatings[pdfKey(b.title)] ?? 0).toFixed(1)}</span>
-                              <span className="text-slate-500">({reviewCounts[pdfKey(b.title)]})</span>
+                              <span className="text-slate-500">
+                                ({reviewCounts[pdfKey(b.title)]})
+                              </span>
                             </div>
                           )}
-                          <button type="button" aria-label="Read" title="Read" onClick={() => setActivePdf({ id: b.id, title: b.title, cover: b.cover, fileUrl: b.fileUrl })} disabled={!b.fileUrl} className="pt-2 mt-auto inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed bg-cyan-700 hover:bg-cyan-600">Read Now</button>
+                          <button
+                            type="button"
+                            aria-label="Read"
+                            title="Read"
+                            onClick={() =>
+                              setActivePdf({
+                                id: b.id,
+                                title: b.title,
+                                cover: b.cover,
+                                fileUrl: b.fileUrl,
+                              })
+                            }
+                            disabled={!b.fileUrl}
+                            className="pt-2 mt-auto inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed bg-cyan-700 hover:bg-cyan-600"
+                          >
+                            Read Now
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -419,10 +486,17 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                 ) : (
                   <div className="space-y-4">
                     {pagedBooks.map((b) => (
-                      <div key={b.id} className="relative rounded-xl ring-1 ring-black/5 bg-white shadow-sm overflow-hidden flex h-full">
+                      <div
+                        key={b.id}
+                        className="relative rounded-xl ring-1 ring-black/5 bg-white shadow-sm overflow-hidden flex h-full"
+                      >
                         <div className="relative h-28 w-28 shrink-0">
                           {b.cover ? (
-                            <img src={b.cover} alt={b.title} className="h-full w-full object-cover" />
+                            <img
+                              src={b.cover}
+                              alt={b.title}
+                              className="h-full w-full object-cover"
+                            />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center bg-slate-100">
                               <FaFilePdf aria-hidden className="size-8 text-slate-500" />
@@ -439,10 +513,28 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                             <div className="absolute top-1 right-1 inline-flex items-center gap-1 rounded-xl bg-white/70 backdrop-blur px-2 py-0.5 text-[10px] font-medium text-slate-800 ring-1 ring-white/30 shadow-sm">
                               <StarIcon aria-hidden className="size-3.5 text-yellow-400" />
                               <span>{(avgRatings[pdfKey(b.title)] ?? 0).toFixed(1)}</span>
-                              <span className="text-slate-500">({reviewCounts[pdfKey(b.title)]})</span>
+                              <span className="text-slate-500">
+                                ({reviewCounts[pdfKey(b.title)]})
+                              </span>
                             </div>
                           )}
-                          <button type="button" aria-label="Read" title="Read" onClick={() => setActivePdf({ id: b.id, title: b.title, cover: b.cover, fileUrl: b.fileUrl })} disabled={!b.fileUrl} className="pt-2 mt-auto inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed bg-cyan-700 hover:bg-cyan-600">Read Now</button>
+                          <button
+                            type="button"
+                            aria-label="Read"
+                            title="Read"
+                            onClick={() =>
+                              setActivePdf({
+                                id: b.id,
+                                title: b.title,
+                                cover: b.cover,
+                                fileUrl: b.fileUrl,
+                              })
+                            }
+                            disabled={!b.fileUrl}
+                            className="pt-2 mt-auto inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed bg-cyan-700 hover:bg-cyan-600"
+                          >
+                            Read Now
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -454,15 +546,35 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
               </div>
             </div>
             <div className="mt-6">
-              <PdfPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalPosts={totalPosts} postsPerPage={postsPerPage} />
+              <PdfPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalPosts={totalPosts}
+                postsPerPage={postsPerPage}
+              />
             </div>
           </section>
-        {activePdf && (
-          <div className="fixed inset-0 z-[60] bg-white">
-            <button type="button" aria-label="Close reading room" title="Close reading room" onClick={() => setActivePdf(null)} className="absolute top-4 left-4 z-[70] rounded-xl bg-cyan-700 px-3 py-1.5 text-sm font-semibold text-white shadow-lg hover:bg-cyan-600">Back</button>
-            <PdfReader bookId={activePdf.id} fileUrl={activePdf.fileUrl} title={activePdf.title} coverUrl={activePdf.cover} onClose={() => setActivePdf(null)} />
-          </div>
-        )}
+          {activePdf && (
+            <div className="fixed inset-0 z-[60] bg-white">
+              <button
+                type="button"
+                aria-label="Close reading room"
+                title="Close reading room"
+                onClick={() => setActivePdf(null)}
+                className="absolute top-4 left-4 z-[70] rounded-xl bg-cyan-700 px-3 py-1.5 text-sm font-semibold text-white shadow-lg hover:bg-cyan-600"
+              >
+                Back
+              </button>
+              <PdfReader
+                bookId={activePdf.id}
+                fileUrl={activePdf.fileUrl}
+                title={activePdf.title}
+                coverUrl={activePdf.cover}
+                onClose={() => setActivePdf(null)}
+              />
+            </div>
+          )}
         </main>
       </div>
       <ScrollToTopButton />

@@ -3,7 +3,7 @@ import Footer from '../Layouts/Footer'
 import ScrollToTopButton from '../Layouts/ScrollUpToTopButton'
 import HeroBanner from '../Layouts/HeroBanner'
 import Breadcrumb from '../Layouts/Breadcrumb'
-import { FaRegLightbulb } from "react-icons/fa"
+import { FaRegLightbulb } from 'react-icons/fa'
 import CountUp from 'react-countup'
 
 const stats = [
@@ -27,7 +27,13 @@ export default function OurStory({ onNavigate }: OurStoryProps) {
         description="This Nook began with a simple spark: a passion to build a single, welcoming space where any reader could easily find their next great story, always free from digital clutter."
         buttonText="Explore Our Journey"
         backgroundImgAlt="Our Story banner"
-        preTitleSlot={<Breadcrumb pages={[{ name: 'Our Story', href: '#ourStory', current: true }]} onNavigate={onNavigate} variant="dark" />}
+        preTitleSlot={
+          <Breadcrumb
+            pages={[{ name: 'Our Story', href: '#ourStory', current: true }]}
+            onNavigate={onNavigate}
+            variant="dark"
+          />
+        }
         scrollTargetId="ourStory-content"
       />
       <div id="ourStory-content" className="bg-white py-20 lg:py-24">
@@ -51,11 +57,15 @@ export default function OurStory({ onNavigate }: OurStoryProps) {
                   </div>
                   <blockquote className="mt-6 text-xl/8 font-semibold text-white">
                     <p>
-                      "I was tired of searching for books all over the internet. I just wanted one single place—a quiet 'nook'—where I could gather all my favorites reads, whether PDF or audio. E-Book Nook is that place, built to share with fellow readers."
+                      "I was tired of searching for books all over the internet. I just wanted one
+                      single place—a quiet 'nook'—where I could gather all my favorites reads,
+                      whether PDF or audio. E-Book Nook is that place, built to share with fellow
+                      readers."
                     </p>
                   </blockquote>
                   <figcaption className="mt-6 text-base text-gray-300">
-                    <strong className="font-semibold text-white">Key,</strong> Founder and developer of E-Book Nook
+                    <strong className="font-semibold text-white">Key,</strong> Founder and developer
+                    of E-Book Nook
                   </figcaption>
                 </figure>
               </div>
@@ -68,10 +78,14 @@ export default function OurStory({ onNavigate }: OurStoryProps) {
                 </h1>
                 <div className="max-w-xl">
                   <p className="mt-6">
-                    Our goal is simple: to create the best possible reading experience. E-Book Nook was born from a love of reading and a desire to make great stories easily accessible.
+                    Our goal is simple: to create the best possible reading experience. E-Book Nook
+                    was born from a love of reading and a desire to make great stories easily
+                    accessible.
                   </p>
                   <p className="mt-8">
-                    We believe finding a good book shouldn't be a chore. That's why we focus on building a clean, comfortable, and organized space where you can immerse yourself in what truly matters—the story.
+                    We believe finding a good book shouldn't be a chore. That's why we focus on
+                    building a clean, comfortable, and organized space where you can immerse
+                    yourself in what truly matters—the story.
                   </p>
                 </div>
               </div>
@@ -83,9 +97,21 @@ export default function OurStory({ onNavigate }: OurStoryProps) {
                   return (
                     <div key={statIdx}>
                       <dt className="text-lg font-semibold text-cyan-600">{stat.label}</dt>
-                      <dd className={isNumeric ? "mt-2 text-2xl font-bold tracking-tight text-cyan-700" : "inline-flex animate-bounce mt-2 text-xl font-bold tracking-tight text-cyan-700"}>
+                      <dd
+                        className={
+                          isNumeric
+                            ? 'mt-2 text-2xl font-bold tracking-tight text-cyan-700'
+                            : 'inline-flex animate-bounce mt-2 text-xl font-bold tracking-tight text-cyan-700'
+                        }
+                      >
                         {isNumeric && numericValue !== null ? (
-                          <CountUp end={numericValue} duration={3} suffix={hasPlus ? '+' : undefined} enableScrollSpy scrollSpyOnce />
+                          <CountUp
+                            end={numericValue}
+                            duration={3}
+                            suffix={hasPlus ? '+' : undefined}
+                            enableScrollSpy
+                            scrollSpyOnce
+                          />
                         ) : (
                           stat.value
                         )}

@@ -1,36 +1,43 @@
-import * as React from "react"
-import { Label, Pie, PieChart } from "recharts"
-import { cn } from "@/lib/utils"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import type { ChartConfig } from "@/components/ui/chart"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import * as React from 'react'
+import { Label, Pie, PieChart } from 'recharts'
+import { cn } from '@/lib/utils'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import type { ChartConfig } from '@/components/ui/chart'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 
-export const description = "User activity distribution"
+export const description = 'User activity distribution'
 
 type PieSlice = { name: string; value: number }
 
-export function ChartPieDonutText({ data, title = "Activity Breakdown", desc = "PDF vs Audio", className }: { data: PieSlice[]; title?: string; desc?: string; className?: string }) {
+export function ChartPieDonutText({
+  data,
+  title = 'Activity Breakdown',
+  desc = 'PDF vs Audio',
+  className,
+}: {
+  data: PieSlice[]
+  title?: string
+  desc?: string
+  className?: string
+}) {
   const total = React.useMemo(() => {
     return (Array.isArray(data) ? data : []).reduce((acc, curr) => acc + Number(curr.value || 0), 0)
   }, [data])
 
   const colored = React.useMemo(() => {
-    const colors = ["#fb7185", "#0891b2", "#a78bfa", "#34d399", "#fbbf24"]
-    return (Array.isArray(data) ? data : []).map((d, i) => ({ ...d, fill: colors[i % colors.length] }))
+    const colors = ['#fb7185', '#0891b2', '#a78bfa', '#34d399', '#fbbf24']
+    return (Array.isArray(data) ? data : []).map((d, i) => ({
+      ...d,
+      fill: colors[i % colors.length],
+    }))
   }, [data])
 
   const chartConfig = React.useMemo(() => {
-    return { value: { label: "Value" } } as ChartConfig
+    return { value: { label: 'Value' } } as ChartConfig
   }, [])
 
   return (
-    <Card className={cn("flex flex-col", className)}>
+    <Card className={cn('flex flex-col', className)}>
       <CardHeader className="items-center pb-0">
         <CardTitle>{title}</CardTitle>
         <CardDescription>{desc}</CardDescription>
@@ -42,13 +49,26 @@ export function ChartPieDonutText({ data, title = "Activity Breakdown", desc = "
             <Pie data={colored} dataKey="value" nameKey="name" innerRadius={60} strokeWidth={5}>
               <Label
                 content={({ viewBox }) => {
-                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                  if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
                     return (
-                      <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                        <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-3xl font-bold">
+                      <text
+                        x={viewBox.cx}
+                        y={viewBox.cy}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                      >
+                        <tspan
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          className="fill-foreground text-3xl font-bold"
+                        >
                           {total.toLocaleString()}
                         </tspan>
-                        <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 24} className="fill-muted-foreground">
+                        <tspan
+                          x={viewBox.cx}
+                          y={(viewBox.cy || 0) + 24}
+                          className="fill-muted-foreground"
+                        >
                           Total
                         </tspan>
                       </text>

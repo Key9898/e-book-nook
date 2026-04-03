@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Prettier Configuration** - `.prettierrc` with Tailwind plugin support
+- **Firestore Rules** - `firestore.rules` with comprehensive security rules for all collections
+- **Firestore Indexes** - `firestore.indexes.json` for efficient querying
+- **npm Scripts** - Added `format`, `format:check`, `typecheck`, `storybook`, `build-storybook`
 - PROJECT_PLAN.md - Comprehensive project plan with all specifications
 - CHANGELOG.md - Change tracking documentation
 - LAST_SESSION_SUMMARY.md - Session tracking documentation
@@ -20,8 +24,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - .cursorrules - Cursor IDE rules
 - .github/copilot-instructions.md - GitHub Copilot instructions
 
+### Fixed
+
+- **firebaseConfig.ts** - Fixed TypeScript type safety issues:
+  - Added proper type imports (`Auth`, `Firestore`, `FirebaseStorage`)
+  - Changed `null as any` to proper union types (`Auth | null`, etc.)
+  - Changed `@ts-ignore` to `@ts-expect-error` with descriptive comment
+- **utils.ts** - Fixed ESLint empty catch block warnings:
+  - Added console.warn statements to all empty catch blocks
+  - Provides debugging info for Firestore/localStorage failures
+- **ReviewsForm.tsx** - Fixed React Hooks rules violations:
+  - Moved all hooks before early returns
+  - Fixed conditional hook calls order
+
 ### Changed
 
+- **Inline CSS Fixes** - Removed inline styles in favor of Tailwind CSS classes:
+  - `chart.tsx` - Chart legend colors now use CSS variables
+  - `Reviews.tsx` - Rating bar width now uses CSS variables
+  - `Notes.tsx` - Reorganized className/style order (kept inline for drag positioning)
+  - `AccountSidebar.tsx` - Width styles converted to Tailwind classes
 - Updated .gitignore with comprehensive ignore rules for Storybook, testing, cache, Vercel, and Firebase
 - Added comprehensive Responsive Design Requirements section to PROJECT_PLAN.md
 - Added Responsive Design Rules (Section 5.4) to PROJECT_RULES.md

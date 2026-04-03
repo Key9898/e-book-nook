@@ -21,8 +21,6 @@ interface ReviewsFormProps {
 }
 
 export default function ReviewsForm({ open, onClose, onSubmit }: ReviewsFormProps) {
-  if (!open) return null
-
   const [fullName, setFullName] = useState('')
   const [country, setCountry] = useState('')
   const [bookType, setBookType] = useState('')
@@ -33,12 +31,15 @@ export default function ReviewsForm({ open, onClose, onSubmit }: ReviewsFormProp
   const [date, setDate] = useState('')
 
   useEffect(() => {
+    if (!open) return
     const u = auth?.currentUser || null
     const name = u?.displayName || (u?.email ? u.email.split('@')[0] : '')
     if (name) setFullName(name)
     const today = new Date().toISOString().split('T')[0]
     setDate(today)
   }, [open])
+
+  if (!open) return null
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
@@ -55,12 +56,9 @@ export default function ReviewsForm({ open, onClose, onSubmit }: ReviewsFormProp
   const PDF_OPTIONS = [
     'Introduction to Computer Science (PDF)',
     'Reading with COC Formula (PDF)',
-    'Introduction to Python Programming (PDF)'
+    'Introduction to Python Programming (PDF)',
   ]
-  const AUDIO_OPTIONS = [
-    'Cocoa Break Collection (Audiobook)',
-    'Six Little Girls (Audiobook)'
-  ]
+  const AUDIO_OPTIONS = ['Cocoa Break Collection (Audiobook)', 'Six Little Girls (Audiobook)']
   const isPdfSelected = PDF_OPTIONS.includes(bookType)
   const isAudioSelected = AUDIO_OPTIONS.includes(bookType)
 
@@ -69,7 +67,7 @@ export default function ReviewsForm({ open, onClose, onSubmit }: ReviewsFormProp
     const payload: ReviewFormData = {
       fullName,
       country,
-      bookType,              
+      bookType,
       rating,
       content,
       date,
@@ -113,14 +111,20 @@ export default function ReviewsForm({ open, onClose, onSubmit }: ReviewsFormProp
             {/* Avatar + Name (inline) */}
             <div className="flex items-center gap-4">
               {avatarPreview ? (
-                <img src={avatarPreview} alt="Avatar preview" className="size-16 rounded-xl object-cover" />
+                <img
+                  src={avatarPreview}
+                  alt="Avatar preview"
+                  className="size-16 rounded-xl object-cover"
+                />
               ) : (
                 <div className="size-16 rounded-full bg-slate-100 flex items-center justify-center">
                   <UserCircleIcon className="size-10 text-slate-400" />
                 </div>
               )}
               <div className="flex-1">
-                <label htmlFor="full-name" className="block text-sm font-medium text-slate-700">Full Name</label>
+                <label htmlFor="full-name" className="block text-sm font-medium text-slate-700">
+                  Full Name
+                </label>
                 <input
                   id="full-name"
                   type="text"
@@ -135,7 +139,9 @@ export default function ReviewsForm({ open, onClose, onSubmit }: ReviewsFormProp
             </div>
             {/* City or Country */}
             <div className="mt-4 sm:mt-6">
-              <label htmlFor="country" className="block text-sm font-medium text-slate-700">City or Country</label>
+              <label htmlFor="country" className="block text-sm font-medium text-slate-700">
+                City or Country
+              </label>
               <input
                 id="country"
                 type="text"
@@ -150,25 +156,33 @@ export default function ReviewsForm({ open, onClose, onSubmit }: ReviewsFormProp
             <input type="hidden" value={bookType} required />
             <div className="mt-4 sm:mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <label htmlFor="bookTypePdf" className="block text-sm font-medium text-slate-700">PDF Books</label>
+                <label htmlFor="bookTypePdf" className="block text-sm font-medium text-slate-700">
+                  PDF Books
+                </label>
                 <select
                   id="bookTypePdf"
-                  value={isPdfSelected ? bookType : ""}
+                  value={isPdfSelected ? bookType : ''}
                   onChange={(e) => setBookType(e.target.value)}
                   disabled={isAudioSelected}
                   className="block w-full rounded-xl bg-white px-3.5 py-2 text-base text-slate-900 outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline-2 focus:-outline-offset-2 focus:outline-cyan-600"
                 >
                   <option value="">Select PDF Book</option>
-                  <option value="Introduction to Computer Science (PDF)">Introduction to Computer Science</option>
+                  <option value="Introduction to Computer Science (PDF)">
+                    Introduction to Computer Science
+                  </option>
                   <option value="Reading with COC Formula (PDF)">Reading with COC Formula</option>
-                  <option value="Introduction to Python Programming (PDF)">Introduction to Python Programming</option>
+                  <option value="Introduction to Python Programming (PDF)">
+                    Introduction to Python Programming
+                  </option>
                 </select>
               </div>
               <div>
-                <label htmlFor="bookTypeAudio" className="block text-sm font-medium text-slate-700">Audiobooks</label>
+                <label htmlFor="bookTypeAudio" className="block text-sm font-medium text-slate-700">
+                  Audiobooks
+                </label>
                 <select
                   id="bookTypeAudio"
-                  value={isAudioSelected ? bookType : ""}
+                  value={isAudioSelected ? bookType : ''}
                   onChange={(e) => setBookType(e.target.value)}
                   disabled={isPdfSelected}
                   className="block w-full rounded-xl bg-white px-3.5 py-2 text-base text-slate-900 outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline-2 focus:-outline-offset-2 focus:outline-cyan-600"
@@ -182,7 +196,9 @@ export default function ReviewsForm({ open, onClose, onSubmit }: ReviewsFormProp
             {/* Rating + Date */}
             <div className="mt-4 sm:mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <label htmlFor="rating" className="block text-sm font-medium text-slate-700">Rating</label>
+                <label htmlFor="rating" className="block text-sm font-medium text-slate-700">
+                  Rating
+                </label>
                 <select
                   id="rating"
                   value={rating}
@@ -197,7 +213,9 @@ export default function ReviewsForm({ open, onClose, onSubmit }: ReviewsFormProp
                 </select>
               </div>
               <div>
-                <label htmlFor="date" className="block text-sm font-medium text-slate-700">Date</label>
+                <label htmlFor="date" className="block text-sm font-medium text-slate-700">
+                  Date
+                </label>
                 <input
                   id="date"
                   type="date"
@@ -211,7 +229,9 @@ export default function ReviewsForm({ open, onClose, onSubmit }: ReviewsFormProp
             </div>
             {/* Content */}
             <div className="mt-4 sm:mt-6">
-              <label htmlFor="content" className="block text-sm font-medium text-slate-700">Your Review</label>
+              <label htmlFor="content" className="block text-sm font-medium text-slate-700">
+                Your Review
+              </label>
               <textarea
                 id="content"
                 rows={5}
@@ -224,7 +244,9 @@ export default function ReviewsForm({ open, onClose, onSubmit }: ReviewsFormProp
             </div>
             {/* Optional photo upload */}
             <div className="mt-4 sm:mt-6">
-              <label htmlFor="avatar" className="block text-sm font-medium text-slate-700">Choose your photo (optional)</label>
+              <label htmlFor="avatar" className="block text-sm font-medium text-slate-700">
+                Choose your photo (optional)
+              </label>
               <input
                 id="avatar"
                 type="file"

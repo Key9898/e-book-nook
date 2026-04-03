@@ -24,7 +24,17 @@ interface HeroBannerProps {
   scrollTargetId?: string
 }
 
-export default function HeroBanner({ onPrimaryAction, title, description, buttonText, backgroundImgAlt, backgroundImgClass, variant, preTitleSlot, scrollTargetId }: HeroBannerProps) {
+export default function HeroBanner({
+  onPrimaryAction,
+  title,
+  description,
+  buttonText,
+  backgroundImgAlt,
+  backgroundImgClass,
+  variant,
+  preTitleSlot,
+  scrollTargetId,
+}: HeroBannerProps) {
   const contacts: ContactItem[] = [
     {
       label: 'Phone',
@@ -64,13 +74,17 @@ export default function HeroBanner({ onPrimaryAction, title, description, button
     "E-Book Nook is more than just a library. It's a space designed with powerful tools to help you track your progress, capture ideas, and read comfortably. See what makes your nook special."
   const effectiveButton = buttonText ?? 'Explore Features'
   const bgMap: Record<string, string> = {
-    collections: "bg-[url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=2070&auto=format&fit=crop')]",
+    collections:
+      "bg-[url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=2070&auto=format&fit=crop')]",
     faqs: "bg-[url('https://images.unsplash.com/photo-1517180102446-f3ece52eac50?q=80&w=2000&auto=format&fit=crop')]",
-    terms: "bg-[url('https://images.unsplash.com/photo-1527631746610-bca00a040d60?q=80&w=2000&auto=format&fit=crop')]",
-    privacy: "bg-[url('https://images.unsplash.com/photo-1507840787230-210e4d6fda4d?q=80&w=2000&auto=format&fit=crop')]",
+    terms:
+      "bg-[url('https://images.unsplash.com/photo-1527631746610-bca00a040d60?q=80&w=2000&auto=format&fit=crop')]",
+    privacy:
+      "bg-[url('https://images.unsplash.com/photo-1507840787230-210e4d6fda4d?q=80&w=2000&auto=format&fit=crop')]",
     home: "bg-[url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=2070&auto=format&fit=crop')]",
   }
-  const effectiveBgClass = backgroundImgClass ?? (variant ? bgMap[variant] : undefined) ?? bgMap.home
+  const effectiveBgClass =
+    backgroundImgClass ?? (variant ? bgMap[variant] : undefined) ?? bgMap.home
   const bgUrlMatch = (effectiveBgClass || '').match(/url\(["']([^"']+)["']\)/)
   const bgUrl = bgUrlMatch ? bgUrlMatch[1] : ''
 
@@ -128,17 +142,11 @@ export default function HeroBanner({ onPrimaryAction, title, description, button
       <div className="absolute inset-0 bg-black/60" />
       <div className="relative mx-auto max-w-7xl px-4 sm:px-8 py-20 lg:px-8 lg:py-28">
         <div className="max-w-3xl">
-          {preTitleSlot && (
-            <div className="mb-6 sm:mb-8 lg:mb-12">
-              {preTitleSlot}
-            </div>
-          )}
+          {preTitleSlot && <div className="mb-6 sm:mb-8 lg:mb-12">{preTitleSlot}</div>}
           <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-6xl">
             {effectiveTitle}
           </h1>
-          <p className="mt-6 text-lg text-white/80 max-w-2xl">
-            {effectiveDescription}
-          </p>
+          <p className="mt-6 text-lg text-white/80 max-w-2xl">{effectiveDescription}</p>
           <div className="mt-8">
             <button
               type="button"
@@ -159,7 +167,10 @@ export default function HeroBanner({ onPrimaryAction, title, description, button
               {item.href?.startsWith('http') ? (
                 <a href={item.href} target="_blank" rel="noopener noreferrer" className="group">
                   <div className="mb-2 flex items-center gap-3">
-                    <item.icon aria-hidden className="size-7 text-cyan-500 group-hover:text-cyan-400" />
+                    <item.icon
+                      aria-hidden
+                      className="size-7 text-cyan-500 group-hover:text-cyan-400"
+                    />
                     <h3 className="text-white font-semibold text-lg">{item.label}</h3>
                   </div>
                   <p className="mt-1 text-white/70 text-base">{item.value}</p>
@@ -167,7 +178,10 @@ export default function HeroBanner({ onPrimaryAction, title, description, button
               ) : (
                 <>
                   <div className="mb-2 flex items-center gap-3">
-                    <item.icon aria-hidden={true} className="size-7 text-cyan-500 hover:text-cyan-400" />
+                    <item.icon
+                      aria-hidden={true}
+                      className="size-7 text-cyan-500 hover:text-cyan-400"
+                    />
                     <h3 className="text-white font-semibold text-lg">{item.label}</h3>
                   </div>
                   <p className="mt-1 text-white/70 text-base">{item.value}</p>

@@ -28,16 +28,28 @@ export default function Header({ onNavigate }: HeaderProps) {
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [userDisplayName, setUserDisplayName] = useState<string | null>(null)
-  
+
   // isActive Logic တွေကို ဖယ်လိုက်ပါပြီ
 
   const handleSignOut = async () => {
     if (!(auth as any)?.app) {
-      window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'error', title: 'Auth not configured', message: 'Please set Firebase env variables.' } }))
+      window.dispatchEvent(
+        new CustomEvent('app:notify', {
+          detail: {
+            type: 'error',
+            title: 'Auth not configured',
+            message: 'Please set Firebase env variables.',
+          },
+        })
+      )
       return
     }
     await signOut(auth)
-    window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'success', title: 'Signed out', message: 'You have been signed out.' } }))
+    window.dispatchEvent(
+      new CustomEvent('app:notify', {
+        detail: { type: 'success', title: 'Signed out', message: 'You have been signed out.' },
+      })
+    )
   }
 
   useEffect(() => {
@@ -58,8 +70,14 @@ export default function Header({ onNavigate }: HeaderProps) {
   }, [])
 
   useEffect(() => {
-    const openSignIn = () => { setAuthMode('signin'); setAuthOpen(true) }
-    const openSignUp = () => { setAuthMode('signup'); setAuthOpen(true) }
+    const openSignIn = () => {
+      setAuthMode('signin')
+      setAuthOpen(true)
+    }
+    const openSignUp = () => {
+      setAuthMode('signup')
+      setAuthOpen(true)
+    }
     window.addEventListener('app:auth:open', openSignIn as any)
     window.addEventListener('app:auth:open:signin', openSignIn as any)
     window.addEventListener('app:auth:open:signIn', openSignIn as any)
@@ -67,7 +85,8 @@ export default function Header({ onNavigate }: HeaderProps) {
     const onUserChanged = (e: any) => {
       const d = (e as CustomEvent).detail || {}
       if (typeof d.email === 'string') setUserEmail(d.email)
-      if (typeof d.displayName === 'string') setUserDisplayName(d.displayName ?? (d.email ? d.email.split('@')[0] : null))
+      if (typeof d.displayName === 'string')
+        setUserDisplayName(d.displayName ?? (d.email ? d.email.split('@')[0] : null))
       else if (d.email && !d.displayName) setUserDisplayName(d.email.split('@')[0])
     }
     window.addEventListener('app:user:changed', onUserChanged as any)
@@ -81,13 +100,20 @@ export default function Header({ onNavigate }: HeaderProps) {
   }, [])
 
   return (
-    <header className={`sticky top-0 z-50 transition-colors duration-300 ${isSticky ? 'bg-gradient-to-b from-cyan-50 to-sky-100 shadow-md' : 'bg-white/30 backdrop-blur'}`}>
+    <header
+      className={`sticky top-0 z-50 transition-colors duration-300 ${isSticky ? 'bg-gradient-to-b from-cyan-50 to-sky-100 shadow-md' : 'bg-white/30 backdrop-blur'}`}
+    >
       <TextAnimation />
-      <nav aria-label="Global" className="relative mx-auto flex max-w-7xl items-center justify-between p-6 px-2 sm:px-6 lg:px-8">
+      <nav
+        aria-label="Global"
+        className="relative mx-auto flex max-w-7xl items-center justify-between p-6 px-2 sm:px-6 lg:px-8"
+      >
         <div className="flex items-center gap-x-3">
           <button
             type="button"
-            onClick={() => { onNavigate?.('home') }}
+            onClick={() => {
+              onNavigate?.('home')
+            }}
             className="-m-1.5 p-1.5"
           >
             <span className="sr-only">E-Book Nook</span>
@@ -98,9 +124,7 @@ export default function Header({ onNavigate }: HeaderProps) {
             />
           </button>
           {!isSticky && (
-            <span className={`text-xl font-bold ${textZoomGradientClass}`}>
-              E-Book Nook
-            </span>
+            <span className={`text-xl font-bold ${textZoomGradientClass}`}>E-Book Nook</span>
           )}
         </div>
 
@@ -111,8 +135,8 @@ export default function Header({ onNavigate }: HeaderProps) {
               <button
                 key={item.slug}
                 type="button"
-                onClick={() => { 
-                   onNavigate?.(item.slug) 
+                onClick={() => {
+                  onNavigate?.(item.slug)
                 }}
                 // Active Color Logic ဖြုတ်လိုက်ပါပြီ။ Hover effect ပဲ ထားပါတော့တယ်။
                 className="text-base font-semibold text-cyan-600 hover:text-cyan-500 transition-colors"
@@ -131,7 +155,9 @@ export default function Header({ onNavigate }: HeaderProps) {
                 <button
                   key={item.slug}
                   type="button"
-                  onClick={() => { onNavigate?.(item.slug) }}
+                  onClick={() => {
+                    onNavigate?.(item.slug)
+                  }}
                   // Active Color Logic ဖြုတ်လိုက်ပါပြီ။
                   className="text-base font-semibold text-cyan-800/80 hover:text-cyan-600 transition-colors"
                 >
@@ -139,12 +165,22 @@ export default function Header({ onNavigate }: HeaderProps) {
                 </button>
               ))}
 
-            <UserPanel userEmail={userEmail} userDisplayName={userDisplayName} onNavigate={onNavigate} onSignOut={handleSignOut} />
+            <UserPanel
+              userEmail={userEmail}
+              userDisplayName={userDisplayName}
+              onNavigate={onNavigate}
+              onSignOut={handleSignOut}
+            />
           </div>
         </div>
 
         <div className="flex lg:hidden items-center sm:gap-4">
-          <UserPanel userEmail={userEmail} userDisplayName={userDisplayName} onNavigate={onNavigate} onSignOut={handleSignOut} />
+          <UserPanel
+            userEmail={userEmail}
+            userDisplayName={userDisplayName}
+            onNavigate={onNavigate}
+            onSignOut={handleSignOut}
+          />
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
@@ -163,11 +199,18 @@ export default function Header({ onNavigate }: HeaderProps) {
           <div className="flex items-center justify-between">
             <button
               type="button"
-              onClick={() => { onNavigate?.('home'); setMobileMenuOpen(false) }}
+              onClick={() => {
+                onNavigate?.('home')
+                setMobileMenuOpen(false)
+              }}
               className="-m-1.5 p-1.5"
             >
               <span className="sr-only">E-Book Nook</span>
-              <img alt="E-Book Nook Logo" src={isSticky ? StickyLogo : Logo} className="h-12 w-auto" />
+              <img
+                alt="E-Book Nook Logo"
+                src={isSticky ? StickyLogo : Logo}
+                className="h-12 w-auto"
+              />
             </button>
             <button
               type="button"
@@ -185,14 +228,16 @@ export default function Header({ onNavigate }: HeaderProps) {
                   <button
                     key={item.slug}
                     type="button"
-                  onClick={() => { onNavigate?.(item.slug); setMobileMenuOpen(false) }}
+                    onClick={() => {
+                      onNavigate?.(item.slug)
+                      setMobileMenuOpen(false)
+                    }}
                     className="-mx-3 block rounded-xl px-3 py-2 text-base sm:text-lg font-semibold sm:font-semibold w-full text-left text-cyan-600 hover:text-cyan-500 hover:bg-white/40"
                   >
                     {item.name}
                   </button>
                 ))}
               </div>
-
             </div>
           </div>
         </DialogPanel>
@@ -204,9 +249,15 @@ export default function Header({ onNavigate }: HeaderProps) {
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
             <DialogPanel className="w-full max-w-md rounded-xl bg-white shadow-lg">
-              {authMode === 'signin'
-                ? <SignIn onClose={() => setAuthOpen(false)} onNavigate={onNavigate} />
-                : <SignUp onBackToSignIn={() => setAuthMode('signin')} onClose={() => setAuthOpen(false)} onNavigate={onNavigate} />}
+              {authMode === 'signin' ? (
+                <SignIn onClose={() => setAuthOpen(false)} onNavigate={onNavigate} />
+              ) : (
+                <SignUp
+                  onBackToSignIn={() => setAuthMode('signin')}
+                  onClose={() => setAuthOpen(false)}
+                  onNavigate={onNavigate}
+                />
+              )}
             </DialogPanel>
           </div>
         </div>

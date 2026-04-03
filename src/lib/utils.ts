@@ -1,7 +1,7 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-import { auth, db } from "../firebaseConfig"
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore"
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+import { auth, db } from '../firebaseConfig'
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -17,13 +17,22 @@ export type BookProgress = {
   lastActivityTs?: number
 }
 
-export function getBookStatus(p: BookProgress, now = Date.now(), completionThreshold = 0.9, activeWindowMs = 120000) {
+export function getBookStatus(
+  p: BookProgress,
+  now = Date.now(),
+  completionThreshold = 0.9,
+  activeWindowMs = 120000
+) {
   const total = Math.max(1, p.totalPages)
   const cur = Math.max(0, Math.min(p.currentPage, total))
   const percent = cur / total
   const completed = !!p.completedTs || percent >= completionThreshold
   const notStarted = !p.startedTs && cur <= 1
-  const status: ProgressStatus = completed ? 'completed' : notStarted ? 'not_started' : 'in_progress'
+  const status: ProgressStatus = completed
+    ? 'completed'
+    : notStarted
+      ? 'not_started'
+      : 'in_progress'
   const active = !!p.lastActivityTs && now - p.lastActivityTs <= activeWindowMs
   return { status, percent, active }
 }
@@ -51,13 +60,22 @@ export type AudioProgress = {
   lastActivityTs?: number
 }
 
-export function getAudioStatus(p: AudioProgress, now = Date.now(), completionThreshold = 0.9, activeWindowMs = 120000) {
+export function getAudioStatus(
+  p: AudioProgress,
+  now = Date.now(),
+  completionThreshold = 0.9,
+  activeWindowMs = 120000
+) {
   const dur = Math.max(1, p.durationMs)
   const pos = Math.max(0, Math.min(p.positionMs, dur))
   const percent = pos / dur
   const completed = !!p.completedTs || percent >= completionThreshold
   const notStarted = !p.startedTs && pos <= 1000
-  const status: ProgressStatus = completed ? 'completed' : notStarted ? 'not_started' : 'in_progress'
+  const status: ProgressStatus = completed
+    ? 'completed'
+    : notStarted
+      ? 'not_started'
+      : 'in_progress'
   const active = p.playing || (!!p.lastActivityTs && now - p.lastActivityTs <= activeWindowMs)
   return { status, percent, active }
 }
@@ -80,11 +98,21 @@ export async function saveBookProgress(bookId: string, progress: BookProgress) {
   const uid = auth?.currentUser?.uid || localStorage.getItem('auth_user') || ''
   if (uid && db) {
     try {
-      await setDoc(doc(db, 'users', uid, 'readingProgress', bookId), { ...progress, updatedAt: serverTimestamp() }, { merge: true })
+      await setDoc(
+        doc(db, 'users', uid, 'readingProgress', bookId),
+        { ...progress, updatedAt: serverTimestamp() },
+        { merge: true }
+      )
       return
-    } catch {}
+    } catch {
+      console.warn('Failed to save book progress to Firestore')
+    }
   }
-  try { localStorage.setItem(`readingProgress:${bookId}`, JSON.stringify(progress)) } catch {}
+  try {
+    localStorage.setItem(`readingProgress:${bookId}`, JSON.stringify(progress))
+  } catch {
+    console.warn('Failed to save book progress to localStorage')
+  }
 }
 
 export async function loadBookProgress(bookId: string): Promise<BookProgress | null> {
@@ -93,23 +121,37 @@ export async function loadBookProgress(bookId: string): Promise<BookProgress | n
     try {
       const snap = await getDoc(doc(db, 'users', uid, 'readingProgress', bookId))
       if (snap.exists()) return snap.data() as BookProgress
-    } catch {}
+    } catch {
+      console.warn('Failed to load book progress from Firestore')
+    }
   }
   try {
     const raw = localStorage.getItem(`readingProgress:${bookId}`)
     return raw ? (JSON.parse(raw) as BookProgress) : null
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
 
 export async function saveAudioProgress(audioId: string, progress: AudioProgress) {
   const uid = auth?.currentUser?.uid || localStorage.getItem('auth_user') || ''
   if (uid && db) {
     try {
-      await setDoc(doc(db, 'users', uid, 'audioProgress', audioId), { ...progress, updatedAt: serverTimestamp() }, { merge: true })
+      await setDoc(
+        doc(db, 'users', uid, 'audioProgress', audioId),
+        { ...progress, updatedAt: serverTimestamp() },
+        { merge: true }
+      )
       return
-    } catch {}
+    } catch {
+      console.warn('Failed to save audio progress to Firestore')
+    }
   }
-  try { localStorage.setItem(`audioProgress:${audioId}`, JSON.stringify(progress)) } catch {}
+  try {
+    localStorage.setItem(`audioProgress:${audioId}`, JSON.stringify(progress))
+  } catch {
+    console.warn('Failed to save audio progress to localStorage')
+  }
 }
 
 export async function loadAudioProgress(audioId: string): Promise<AudioProgress | null> {
@@ -118,10 +160,14 @@ export async function loadAudioProgress(audioId: string): Promise<AudioProgress 
     try {
       const snap = await getDoc(doc(db, 'users', uid, 'audioProgress', audioId))
       if (snap.exists()) return snap.data() as AudioProgress
-    } catch {}
+    } catch {
+      console.warn('Failed to load audio progress from Firestore')
+    }
   }
   try {
     const raw = localStorage.getItem(`audioProgress:${audioId}`)
     return raw ? (JSON.parse(raw) as AudioProgress) : null
-  } catch { return null }
+  } catch {
+    return null
+  }
 }

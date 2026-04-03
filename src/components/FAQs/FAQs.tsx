@@ -14,8 +14,7 @@ const faqs = [
   },
   {
     question: 'Does E-Book Nook cost money?',
-    answer:
-      'No. All books, audiobooks, and features on E-Book Nook are 100% free.',
+    answer: 'No. All books, audiobooks, and features on E-Book Nook are 100% free.',
   },
   {
     question: 'Do I need an account just to read or listen?',
@@ -49,7 +48,9 @@ const faqs = [
   },
 ]
 
-interface FAQsProps { onNavigate?: (page: string) => void }
+interface FAQsProps {
+  onNavigate?: (page: string) => void
+}
 
 export default function FAQs({ onNavigate }: FAQsProps) {
   const [openMap, setOpenMap] = useState<Record<number, boolean>>({})
@@ -62,19 +63,33 @@ export default function FAQs({ onNavigate }: FAQsProps) {
         description="Discover clear answers to all your questions about our service. Understand exactly how E-Book Nook functions, ranging from our beneficial free features to essential account details, in one convenient location."
         buttonText="Find Answers"
         backgroundImgAlt="FAQs banner"
-        preTitleSlot={<Breadcrumb pages={[{ name: 'FAQs', href: '#faqs', current: true }]} onNavigate={onNavigate} variant="dark" />}
+        preTitleSlot={
+          <Breadcrumb
+            pages={[{ name: 'FAQs', href: '#faqs', current: true }]}
+            onNavigate={onNavigate}
+            variant="dark"
+          />
+        }
         scrollTargetId="faqs-content"
-        />
+      />
       <main id="faqs-content" className="bg-white">
         <div className="mx-auto max-w-7xl px-4 py-24 sm:px-8 sm:py-32 lg:px-8 lg:py-40">
           <div className="mx-auto max-w-4xl">
-            <h2 className="text-4xl font-semibold tracking-tight text-cyan-700/80 sm:text-5xl">Frequently asked questions</h2>
+            <h2 className="text-4xl font-semibold tracking-tight text-cyan-700/80 sm:text-5xl">
+              Frequently asked questions
+            </h2>
             <dl className="mt-16 space-y-6">
               {faqs.map((faq, index) => (
                 <>
                   <dt className="pt-6 first:pt-0">
-                    <button type="button" onClick={() => setOpenMap((m) => ({ ...m, [index]: !m[index] }))} className="group flex w-full items-start justify-between text-left text-gray-900">
-                      <span className="text-base/7 font-semibold">{index + 1}. {faq.question}</span>
+                    <button
+                      type="button"
+                      onClick={() => setOpenMap((m) => ({ ...m, [index]: !m[index] }))}
+                      className="group flex w-full items-start justify-between text-left text-gray-900"
+                    >
+                      <span className="text-base/7 font-semibold">
+                        {index + 1}. {faq.question}
+                      </span>
                       <span className="ml-6 flex h-7 items-center">
                         {openMap[index] ? (
                           <MinusIcon aria-hidden="true" className="size-6" />

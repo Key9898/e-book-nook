@@ -1,5 +1,5 @@
-import * as React from "react"
-import { Calendar } from "@/components/ui/calendar"
+import * as React from 'react'
+import { Calendar } from '@/components/ui/calendar'
 
 export function CalendarDemo() {
   const [date, setDate] = React.useState<Date | undefined>(new Date())

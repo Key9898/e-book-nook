@@ -11,7 +11,9 @@ export default function Notification() {
 
   useEffect(() => {
     const handler = (e: Event) => {
-      const detail = (e as CustomEvent<{ title?: string; message?: string; type?: 'success' | 'error' }>).detail || {}
+      const detail =
+        (e as CustomEvent<{ title?: string; message?: string; type?: 'success' | 'error' }>)
+          .detail || {}
       setTitle(detail.title ?? (detail.type === 'error' ? 'Action failed' : 'Success'))
       setMessage(detail.message ?? '')
       setType(detail.type ?? 'success')

@@ -23,11 +23,7 @@ export default function SignUp({ onBackToSignIn, onClose, onNavigate }: SignUpPr
           <XMarkIcon className="size-6" aria-hidden="true" />
         </button>
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <img
-            alt="Heavenly Flowers"
-            src={Logo}
-            className="mx-auto h-14 w-auto"
-          />
+          <img alt="Heavenly Flowers" src={Logo} className="mx-auto h-14 w-auto" />
           <h2 className="mt-4 text-center text-xl font-bold tracking-tight text-cyan-700/80">
             Create account
           </h2>
@@ -35,54 +31,80 @@ export default function SignUp({ onBackToSignIn, onClose, onNavigate }: SignUpPr
 
         <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-[400px]">
           <div className="bg-white px-4 py-6 shadow-sm sm:rounded-xl shadow-lg sm:px-6">
-            <form action="#" method="POST" className="space-y-4" onSubmit={async (e) => {
-              e.preventDefault()
-              const form = e.currentTarget as HTMLFormElement
-              const fd = new FormData(form)
-              const email = String(fd.get('email') || '')
-              const password = String(fd.get('password') || '')
-              if (!auth || !(auth as any).app) {
-                window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'error', title: 'Auth not configured', message: 'Please set Firebase env variables.' } }))
-                return
-              }
-              try {
-                const cred = await createUserWithEmailAndPassword(auth, email, password)
-                window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'success', title: 'Account created', message: 'You can now sign in to E-Book Nook.' } }))
-                try {
-                  if (db && cred.user?.uid) {
-                    await addDoc(collection(db, 'notifications'), {
-                      type: 'personal',
-                      to: cred.user.uid,
-                      title: 'Welcome to E-Book Nook',
-                      message: 'Thanks for joining! Explore collections and start reading.',
-                      read: false,
-                      createdAt: serverTimestamp(),
+            <form
+              action="#"
+              method="POST"
+              className="space-y-4"
+              onSubmit={async (e) => {
+                e.preventDefault()
+                const form = e.currentTarget as HTMLFormElement
+                const fd = new FormData(form)
+                const email = String(fd.get('email') || '')
+                const password = String(fd.get('password') || '')
+                if (!auth || !(auth as any).app) {
+                  window.dispatchEvent(
+                    new CustomEvent('app:notify', {
+                      detail: {
+                        type: 'error',
+                        title: 'Auth not configured',
+                        message: 'Please set Firebase env variables.',
+                      },
                     })
-                  }
-                } catch {}
-                if (onBackToSignIn) onBackToSignIn()
-              } catch (err: any) {
-                let msg = 'Sign up failed. Please try again.'
-                switch (err?.code) {
-                  case 'auth/email-already-in-use':
-                    msg = 'This email is already registered.'
-                    break
-                  case 'auth/operation-not-allowed':
-                    msg = 'Email/Password sign-in is disabled. Enable it in Firebase Authentication.'
-                    break
-                  case 'auth/weak-password':
-                    msg = 'Choose a stronger password (min 6 characters).'
-                    break
-                  case 'auth/invalid-email':
-                    msg = 'Enter a valid email address.'
-                    break
-                  default:
-                    break
+                  )
+                  return
                 }
-                console.error('[SignUp] Error:', err?.code || err)
-                window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'error', title: 'Sign up error', message: msg } }))
-              }
-            }}>
+                try {
+                  const cred = await createUserWithEmailAndPassword(auth, email, password)
+                  window.dispatchEvent(
+                    new CustomEvent('app:notify', {
+                      detail: {
+                        type: 'success',
+                        title: 'Account created',
+                        message: 'You can now sign in to E-Book Nook.',
+                      },
+                    })
+                  )
+                  try {
+                    if (db && cred.user?.uid) {
+                      await addDoc(collection(db, 'notifications'), {
+                        type: 'personal',
+                        to: cred.user.uid,
+                        title: 'Welcome to E-Book Nook',
+                        message: 'Thanks for joining! Explore collections and start reading.',
+                        read: false,
+                        createdAt: serverTimestamp(),
+                      })
+                    }
+                  } catch {}
+                  if (onBackToSignIn) onBackToSignIn()
+                } catch (err: any) {
+                  let msg = 'Sign up failed. Please try again.'
+                  switch (err?.code) {
+                    case 'auth/email-already-in-use':
+                      msg = 'This email is already registered.'
+                      break
+                    case 'auth/operation-not-allowed':
+                      msg =
+                        'Email/Password sign-in is disabled. Enable it in Firebase Authentication.'
+                      break
+                    case 'auth/weak-password':
+                      msg = 'Choose a stronger password (min 6 characters).'
+                      break
+                    case 'auth/invalid-email':
+                      msg = 'Enter a valid email address.'
+                      break
+                    default:
+                      break
+                  }
+                  console.error('[SignUp] Error:', err?.code || err)
+                  window.dispatchEvent(
+                    new CustomEvent('app:notify', {
+                      detail: { type: 'error', title: 'Sign up error', message: msg },
+                    })
+                  )
+                }
+              }}
+            >
               <div>
                 <label htmlFor="full-name" className="block text-sm/6 font-medium text-slate-900">
                   Full Name
@@ -98,7 +120,7 @@ export default function SignUp({ onBackToSignIn, onClose, onNavigate }: SignUpPr
                     className="block w-full rounded-xl shadow-lg bg-white px-3 py-1.5 text-base text-slate-900 outline-1 -outline-offset-1 outline-slate-300 placeholder:text-slate-400 focus:outline-2 focus:-outline-offset-2 focus:outline-cyan-700/80 sm:text-sm/6"
                   />
                 </div>
-              </div>  
+              </div>
 
               <div>
                 <label htmlFor="email" className="block text-sm/6 font-medium text-slate-900">
@@ -137,7 +159,11 @@ export default function SignUp({ onBackToSignIn, onClose, onNavigate }: SignUpPr
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                     className="absolute inset-y-0 right-2 flex items-center rounded-xl px-2 text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700"
                   >
-                    {showPassword ? <EyeSlashIcon className="size-5" /> : <EyeIcon className="size-5" />}
+                    {showPassword ? (
+                      <EyeSlashIcon className="size-5" />
+                    ) : (
+                      <EyeIcon className="size-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -177,10 +203,11 @@ export default function SignUp({ onBackToSignIn, onClose, onNavigate }: SignUpPr
                   <label htmlFor="privacy-policy" className="block text-sm/6 text-slate-900">
                     Agree to the{' '}
                     <button
-                     type="button"
-                     onClick={() => onNavigate?.('privacyPolicy')}
-                     className="font-semibold whitespace-nowrap text-cyan-600">
-                     Privacy Policy
+                      type="button"
+                      onClick={() => onNavigate?.('privacyPolicy')}
+                      className="font-semibold whitespace-nowrap text-cyan-600"
+                    >
+                      Privacy Policy
                     </button>
                   </label>
                 </div>
@@ -219,10 +246,11 @@ export default function SignUp({ onBackToSignIn, onClose, onNavigate }: SignUpPr
                   <label htmlFor="terms-service" className="block text-sm/6 text-slate-900">
                     Agree to the{' '}
                     <button
-                     type="button"
-                     onClick={() => onNavigate?.('termsOfService')}
-                     className="font-semibold whitespace-nowrap text-cyan-600">
-                     Terms of Service
+                      type="button"
+                      onClick={() => onNavigate?.('termsOfService')}
+                      className="font-semibold whitespace-nowrap text-cyan-600"
+                    >
+                      Terms of Service
                     </button>
                   </label>
                 </div>
@@ -241,7 +269,7 @@ export default function SignUp({ onBackToSignIn, onClose, onNavigate }: SignUpPr
 
           <p className="mt-6 text-center text-sm text-slate-500">
             Already have an account?{' '}
-            <button 
+            <button
               type="button"
               onClick={onBackToSignIn}
               className="font-semibold text-cyan-700 hover:text-cyan-600 underline bg-transparent border-none cursor-pointer"

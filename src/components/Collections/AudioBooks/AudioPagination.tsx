@@ -8,12 +8,12 @@ interface PaginationProps {
   postsPerPage: number
 }
 
-export default function AudioPagination({ 
-  currentPage, 
-  totalPages, 
-  onPageChange, 
-  totalPosts, 
-  postsPerPage 
+export default function AudioPagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  totalPosts,
+  postsPerPage,
 }: PaginationProps) {
   const startItem = (currentPage - 1) * postsPerPage + 1
   const endItem = Math.min(currentPage * postsPerPage, totalPosts)
@@ -68,12 +68,16 @@ export default function AudioPagination({
           <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-slate-700">
-                Showing <span className="font-medium">{startItem}</span> to <span className="font-medium">{endItem}</span> of{' '}
+                Showing <span className="font-medium">{startItem}</span> to{' '}
+                <span className="font-medium">{endItem}</span> of{' '}
                 <span className="font-medium">{totalPosts}</span> results
               </p>
             </div>
             <div>
-              <nav aria-label="Pagination" className="isolate inline-flex -space-x-px rounded-xl shadow-sm">
+              <nav
+                aria-label="Pagination"
+                className="isolate inline-flex -space-x-px rounded-xl shadow-sm"
+              >
                 <button
                   type="button"
                   onClick={handlePrevious}
@@ -83,7 +87,7 @@ export default function AudioPagination({
                   <span className="sr-only">Previous</span>
                   <ChevronLeftIcon aria-hidden="true" className="h-5 w-5" />
                 </button>
-                
+
                 {pageNumbers.map((page) => (
                   <button
                     type="button"

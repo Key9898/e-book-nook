@@ -4,7 +4,7 @@ import { useState } from 'react'
 import BooksDrawer from './BooksDrawer'
 
 interface HeroSectionProps {
-    onNavigate?: (page: string) => void
+  onNavigate?: (page: string) => void
 }
 
 export default function HeroSection({ onNavigate }: HeroSectionProps) {
@@ -24,7 +24,8 @@ export default function HeroSection({ onNavigate }: HeroSectionProps) {
             </h1>
             <div className="mt-6 max-w-xl lg:mt-0 xl:col-end-1 xl:row-start-1">
               <p className="text-lg font-medium text-pretty text-gray-500 sm:text-xl/8">
-                E-Book Nook is your personal digital library. Discover and read high-quality PDF books, or unwind and listen to our growing collection of curated audiobooks.
+                E-Book Nook is your personal digital library. Discover and read high-quality PDF
+                books, or unwind and listen to our growing collection of curated audiobooks.
               </p>
               <div className="mt-10 flex items-center gap-x-6">
                 <button
@@ -35,9 +36,10 @@ export default function HeroSection({ onNavigate }: HeroSectionProps) {
                   Browse Collection
                 </button>
                 <button
-                 type='button'
-                 onClick={() => onNavigate?.('feedbacks')}
-                 className="text-base font-semibold text-gray-900 hover:text-cyan-700 hover:scale-105 transition-transform duration-300">
+                  type="button"
+                  onClick={() => onNavigate?.('feedbacks')}
+                  className="text-base font-semibold text-gray-900 hover:text-cyan-700 hover:scale-105 transition-transform duration-300"
+                >
                   Feedbacks <span aria-hidden="true">→</span>
                 </button>
               </div>

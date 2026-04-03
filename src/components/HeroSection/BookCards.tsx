@@ -1,6 +1,6 @@
-import { FaFilePdf } from "react-icons/fa6"
-import { LuFileAudio } from "react-icons/lu"
-import RingAnimation from "./RingAnimation"
+import { FaFilePdf } from 'react-icons/fa6'
+import { LuFileAudio } from 'react-icons/lu'
+import RingAnimation from './RingAnimation'
 
 const leftTestimonial = {
   title: 'PDF Books',
@@ -13,10 +13,11 @@ const rightTestimonial = {
 }
 
 interface BookCardsProps {
-    onNavigate?: (page: string) => void
+  onNavigate?: (page: string) => void
 }
 
-export default function BookCards({ onNavigate }: BookCardsProps) { void onNavigate
+export default function BookCards({ onNavigate }: BookCardsProps) {
+  void onNavigate
   return (
     <div className="relative isolate">
       {/* RingAnimation styles inject */}

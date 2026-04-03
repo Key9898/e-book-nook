@@ -420,17 +420,17 @@ VITE_RECAPTCHA_SITE_KEY=
 ```tsx
 // Routing implementation in App.tsx
 const [currentPage, setCurrentPage] = useState(() => {
-  const hash = window.location.hash.replace("#", "");
-  const saved = localStorage.getItem("current_page");
-  return hash || saved || "home";
-});
+  const hash = window.location.hash.replace('#', '')
+  const saved = localStorage.getItem('current_page')
+  return hash || saved || 'home'
+})
 
 // Navigation function
 const handleNavigate = (slug: string) => {
-  window.location.hash = slug;
-  setCurrentPage(slug);
-  window.scrollTo({ top: 0, behavior: "auto" });
-};
+  window.location.hash = slug
+  setCurrentPage(slug)
+  window.scrollTo({ top: 0, behavior: 'auto' })
+}
 ```
 
 ### Route Map

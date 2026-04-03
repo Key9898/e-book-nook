@@ -68,7 +68,10 @@ export default function Notes({ open = true, onClose, bookId }: NotesProps) {
     if (saveTimer.current) clearTimeout(saveTimer.current)
 
     saveTimer.current = setTimeout(async () => {
-      if (skipNextSave.current) { skipNextSave.current = false; return }
+      if (skipNextSave.current) {
+        skipNextSave.current = false
+        return
+      }
       const currentUser = user || auth?.currentUser
 
       if (currentUser && db) {
@@ -80,7 +83,11 @@ export default function Notes({ open = true, onClose, bookId }: NotesProps) {
           } else {
             await setDoc(ref, { text: '' }, { merge: true })
           }
-          try { window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'success', title: 'Notes saved' } })) } catch {}
+          try {
+            window.dispatchEvent(
+              new CustomEvent('app:notify', { detail: { type: 'success', title: 'Notes saved' } })
+            )
+          } catch {}
         } catch (err) {
           console.error('Error saving note:', err)
         }
@@ -91,7 +98,11 @@ export default function Notes({ open = true, onClose, bookId }: NotesProps) {
         } else {
           localStorage.removeItem(`notes_${bookId}`)
         }
-        try { window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'success', title: 'Notes saved' } })) } catch {}
+        try {
+          window.dispatchEvent(
+            new CustomEvent('app:notify', { detail: { type: 'success', title: 'Notes saved' } })
+          )
+        } catch {}
       }
     }, 1000)
 
@@ -99,7 +110,6 @@ export default function Notes({ open = true, onClose, bookId }: NotesProps) {
       if (saveTimer.current) clearTimeout(saveTimer.current)
     }
   }, [text, bookId, user])
-
 
   // Window Drag/Resize Logic
   useEffect(() => {
@@ -155,9 +165,15 @@ export default function Notes({ open = true, onClose, bookId }: NotesProps) {
         console.error('Failed to delete note', err)
       }
     } else {
-      try { localStorage.removeItem(`notes_${bookId}`) } catch {}
+      try {
+        localStorage.removeItem(`notes_${bookId}`)
+      } catch {}
     }
-    try { window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'success', title: 'Note deleted' } })) } catch {}
+    try {
+      window.dispatchEvent(
+        new CustomEvent('app:notify', { detail: { type: 'success', title: 'Note deleted' } })
+      )
+    } catch {}
   }
 
   if (!open) return null
@@ -165,8 +181,14 @@ export default function Notes({ open = true, onClose, bookId }: NotesProps) {
   return (
     <div
       ref={dragRef}
-      style={{ left: pos.x, top: pos.y, width: size.w, height: size.h, touchAction: 'none' }}
       className="absolute z-50 bg-yellow-100 dark:bg-gray-700 dark:text-white shadow-lg rounded-xl ring-1 ring-black/5 overflow-hidden flex flex-col"
+      style={{
+        left: pos.x,
+        top: pos.y,
+        width: size.w,
+        height: size.h,
+        touchAction: 'none',
+      }}
     >
       <div
         onPointerDown={onDragStart}

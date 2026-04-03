@@ -10,7 +10,18 @@ import ReviewsPagination from './ReviewsPagination'
 import ReviewsForm from './ReviewsForm'
 import type { ReviewFormData } from './ReviewsForm'
 import CountUp from 'react-countup'
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, type DocumentData, updateDoc, doc, increment } from 'firebase/firestore'
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  orderBy,
+  onSnapshot,
+  type DocumentData,
+  updateDoc,
+  doc,
+  increment,
+} from 'firebase/firestore'
 import { db, auth } from '../../firebaseConfig'
 import { FaFilePdf } from 'react-icons/fa6'
 import { LuFileAudio } from 'react-icons/lu'
@@ -75,7 +86,10 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
         const list = JSON.parse(saved)
         // Form submissions only: ISO date from <input type="date">
         return Array.isArray(list)
-          ? list.filter((r: { date?: string }) => typeof r?.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.date))
+          ? list.filter(
+              (r: { date?: string }) =>
+                typeof r?.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.date)
+            )
           : []
       } catch {
         return []
@@ -104,7 +118,11 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
             author: String(data.userName || data.author || ''),
             country: String(data.country || ''),
             bookType: String(data.bookType || ''),
-            date: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : String(data.date || ''),
+            date: data.createdAt?.toDate
+              ? data.createdAt
+                  .toDate()
+                  .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+              : String(data.date || ''),
             commentCount: Number(data.commentCount || 0),
             avatarSrc: typeof data.avatarDataUrl === 'string' ? data.avatarDataUrl : null,
           })
@@ -112,7 +130,11 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
         setFeatured(list)
       },
       () => {
-        window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'error', title: 'Failed to load reviews' } }))
+        window.dispatchEvent(
+          new CustomEvent('app:notify', {
+            detail: { type: 'error', title: 'Failed to load reviews' },
+          })
+        )
       }
     )
     return () => unsub()
@@ -122,7 +144,15 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
     const user = auth?.currentUser || null
     if (!user) {
       window.dispatchEvent(new CustomEvent('app:auth:open'))
-      window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'error', title: 'Login required', message: 'Please log in to submit a review.' } }))
+      window.dispatchEvent(
+        new CustomEvent('app:notify', {
+          detail: {
+            type: 'error',
+            title: 'Login required',
+            message: 'Please log in to submit a review.',
+          },
+        })
+      )
       return
     }
     if (db) {
@@ -133,7 +163,8 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
           country: data.country,
           bookType: data.bookType,
           userId: user.uid,
-          userName: user.displayName || data.fullName || (user.email ? user.email.split('@')[0] : ''),
+          userName:
+            user.displayName || data.fullName || (user.email ? user.email.split('@')[0] : ''),
           avatarDataUrl: data.avatarDataUrl || null,
           createdAt: serverTimestamp(),
           commentCount: 0,
@@ -149,16 +180,34 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
           })
         } catch {}
         setIsFormOpen(false)
-        window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'success', title: 'Review submitted', message: 'Thank you for sharing your experience.' } }))
+        window.dispatchEvent(
+          new CustomEvent('app:notify', {
+            detail: {
+              type: 'success',
+              title: 'Review submitted',
+              message: 'Thank you for sharing your experience.',
+            },
+          })
+        )
       } catch (e) {
-        window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'error', title: 'Submit failed', message: 'Could not save review. Please try again.' } }))
+        window.dispatchEvent(
+          new CustomEvent('app:notify', {
+            detail: {
+              type: 'error',
+              title: 'Submit failed',
+              message: 'Could not save review. Please try again.',
+            },
+          })
+        )
       }
     }
   }
 
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({})
   const [openCommentsReviewId, setOpenCommentsReviewId] = useState<string | null>(null)
-  const [activeComments, setActiveComments] = useState<{ id: string; userName: string; text: string; createdAt?: string }[]>([])
+  const [activeComments, setActiveComments] = useState<
+    { id: string; userName: string; text: string; createdAt?: string }[]
+  >([])
 
   const addComment = async (reviewId: string) => {
     const text = (commentInputs[reviewId] || '').trim()
@@ -166,7 +215,11 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
     const user = auth?.currentUser || null
     if (!user || !db) {
       window.dispatchEvent(new CustomEvent('app:auth:open'))
-      window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'error', title: 'Login required', message: 'Please log in to comment.' } }))
+      window.dispatchEvent(
+        new CustomEvent('app:notify', {
+          detail: { type: 'error', title: 'Login required', message: 'Please log in to comment.' },
+        })
+      )
       return
     }
     try {
@@ -192,15 +245,22 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
         } catch {}
       } catch {}
       setCommentInputs((s) => ({ ...s, [reviewId]: '' }))
-      window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'success', title: 'Comment added' } }))
+      window.dispatchEvent(
+        new CustomEvent('app:notify', { detail: { type: 'success', title: 'Comment added' } })
+      )
     } catch {
-      window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'error', title: 'Failed to add comment' } }))
+      window.dispatchEvent(
+        new CustomEvent('app:notify', { detail: { type: 'error', title: 'Failed to add comment' } })
+      )
     }
   }
 
   useEffect(() => {
     if (!openCommentsReviewId || !db) return
-    const q = query(collection(db, 'reviews', openCommentsReviewId, 'comments'), orderBy('createdAt', 'desc'))
+    const q = query(
+      collection(db, 'reviews', openCommentsReviewId, 'comments'),
+      orderBy('createdAt', 'desc')
+    )
     const unsub = onSnapshot(
       q,
       (snap) => {
@@ -213,12 +273,18 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
             id: d.id,
             userName: nameOnly,
             text: String(data.text || ''),
-            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '',
+            createdAt: data.createdAt?.toDate
+              ? data.createdAt
+                  .toDate()
+                  .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+              : '',
           })
         })
         setActiveComments(list)
       },
-      () => { setActiveComments([]) }
+      () => {
+        setActiveComments([])
+      }
     )
     return () => unsub()
   }, [openCommentsReviewId, db])
@@ -258,18 +324,28 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
         description="See what fellow book lovers are saying. Discover new favoritess, get recommendations, and learn how our community uses E-Book Nook to read, listen, and grow."
         buttonText="Explore Reviews"
         backgroundImgAlt="Guest stories banner"
-        preTitleSlot={<Breadcrumb pages={[{ name: 'Reviews', href: '#reviews', current: true }]} onNavigate={onNavigate} variant="dark" />}
+        preTitleSlot={
+          <Breadcrumb
+            pages={[{ name: 'Reviews', href: '#reviews', current: true }]}
+            onNavigate={onNavigate}
+            variant="dark"
+          />
+        }
         scrollTargetId="reviews-content"
       />
 
       {/* Section Header */}
-      <div id="reviews-content" className="mx-auto max-w-7xl px-5 sm:px-9 lg:px-8 pt-20 pb-12 lg:pt-24 lg:pb-16 border-b border-slate-200">
+      <div
+        id="reviews-content"
+        className="mx-auto max-w-7xl px-5 sm:px-9 lg:px-8 pt-20 pb-12 lg:pt-24 lg:pb-16 border-b border-slate-200"
+      >
         <div className="text-center">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-cyan-600">
             Stories From Our Readers
           </h2>
           <p className="mt-3 text-lg/8 text-slate-700 max-w-3xl mx-auto">
-            The best recommendations come from fellow book lovers. See what our community is reading and get inspired to find your next great story.
+            The best recommendations come from fellow book lovers. See what our community is reading
+            and get inspired to find your next great story.
           </p>
         </div>
       </div>
@@ -288,7 +364,7 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
                     aria-hidden="true"
                     className={classNames(
                       averageRating > rating ? 'text-yellow-400' : 'text-slate-300',
-                      'size-5 shrink-0',
+                      'size-5 shrink-0'
                     )}
                   />
                 ))}
@@ -312,14 +388,22 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
                     <div aria-hidden="true" className="ml-1 flex flex-1 items-center">
                       <StarIcon
                         aria-hidden="true"
-                        className={classNames(count.count > 0 ? 'text-yellow-400' : 'text-slate-300', 'size-5 shrink-0')}
+                        className={classNames(
+                          count.count > 0 ? 'text-yellow-400' : 'text-slate-300',
+                          'size-5 shrink-0'
+                        )}
                       />
                       <div className="relative ml-3 flex-1">
                         <div className="h-3 rounded-full border border-slate-200 bg-slate-100" />
                         {count.count > 0 ? (
                           <div
-                            style={{ width: `calc(${count.count} / ${totalCount} * 100%)` }}
                             className="absolute inset-y-0 rounded-full border border-yellow-400 bg-yellow-400"
+                            style={
+                              {
+                                '--bar-width': `${(count.count / totalCount) * 100}%`,
+                                width: 'var(--bar-width)',
+                              } as React.CSSProperties
+                            }
                           />
                         ) : null}
                       </div>
@@ -342,12 +426,28 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
           <div className="mt-10">
             <h3 className="text-xl font-medium text-cyan-600">Share Your Thoughts</h3>
             <p className="mt-1 text-base text-slate-700">
-              Just finished a book from our collection? We'd be grateful to hear your experience. Your review helps other readers discover their next great read.
+              Just finished a book from our collection? We'd be grateful to hear your experience.
+              Your review helps other readers discover their next great read.
             </p>
 
             <button
               type="button"
-              onClick={() => { if (auth?.currentUser) { setIsFormOpen(true) } else { window.dispatchEvent(new CustomEvent('app:auth:open')); window.dispatchEvent(new CustomEvent('app:notify', { detail: { type: 'error', title: 'Login required', message: 'Please log in to write a review.' } })) } }}
+              onClick={() => {
+                if (auth?.currentUser) {
+                  setIsFormOpen(true)
+                } else {
+                  window.dispatchEvent(new CustomEvent('app:auth:open'))
+                  window.dispatchEvent(
+                    new CustomEvent('app:notify', {
+                      detail: {
+                        type: 'error',
+                        title: 'Login required',
+                        message: 'Please log in to write a review.',
+                      },
+                    })
+                  )
+                }
+              }}
               className="mt-6 inline-flex w-full items-center justify-center rounded-xl shadow-lg border border-slate-300 bg-slate-50 px-8 py-2 text-base font-medium text-slate-900 hover:bg-cyan-700 hover:text-white sm:w-auto lg:w-full"
             >
               Write a review
@@ -392,12 +492,22 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
                           ) : null}
                           {bt ? (
                             <span className="inline-flex items-center rounded-xl bg-cyan-50 hover:cyan-100 px-2.5 py-1 text-base font-medium text-slate-700">
-                              {isPdf ? <FaFilePdf aria-hidden className="mr-1 size-4 text-slate-700" /> : null}
-                              {isAudio ? <LuFileAudio aria-hidden className="mr-1 size-4 text-slate-700" /> : null}
+                              {isPdf ? (
+                                <FaFilePdf aria-hidden className="mr-1 size-4 text-slate-700" />
+                              ) : null}
+                              {isAudio ? (
+                                <LuFileAudio aria-hidden className="mr-1 size-4 text-slate-700" />
+                              ) : null}
                               {baseTitle}
                             </span>
                           ) : null}
-                          <button type="button" onClick={() => setOpenCommentsReviewId(review.id)} className="inline-flex items-center rounded-xl bg-cyan-50 px-2.5 py-1 text-base font-medium text-slate-700">Comments: {review.commentCount ?? 0}</button>
+                          <button
+                            type="button"
+                            onClick={() => setOpenCommentsReviewId(review.id)}
+                            className="inline-flex items-center rounded-xl bg-cyan-50 px-2.5 py-1 text-base font-medium text-slate-700"
+                          >
+                            Comments: {review.commentCount ?? 0}
+                          </button>
                         </div>
 
                         <div className="mt-1 flex items-center">
@@ -407,12 +517,14 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
                               aria-hidden="true"
                               className={classNames(
                                 review.rating > rating ? 'text-yellow-400' : 'text-slate-300',
-                                'size-5 shrink-0',
+                                'size-5 shrink-0'
                               )}
                             />
                           ))}
                           {review.date ? (
-                            <span className="ml-3 text-base text-slate-700 leading-5">{review.date}</span>
+                            <span className="ml-3 text-base text-slate-700 leading-5">
+                              {review.date}
+                            </span>
                           ) : null}
                         </div>
                         <p className="sr-only">{review.rating} out of 5 stars</p>
@@ -427,11 +539,19 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
                       <input
                         type="text"
                         value={commentInputs[review.id] ?? ''}
-                        onChange={(e) => setCommentInputs((s) => ({ ...s, [review.id]: e.target.value }))}
+                        onChange={(e) =>
+                          setCommentInputs((s) => ({ ...s, [review.id]: e.target.value }))
+                        }
                         placeholder="Write a comment..."
                         className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm"
                       />
-                      <button type="button" onClick={() => addComment(review.id)} className="rounded-xl bg-cyan-700 px-3 py-2 text-base text-white hover:bg-cyan-600">Comment</button>
+                      <button
+                        type="button"
+                        onClick={() => addComment(review.id)}
+                        className="rounded-xl bg-cyan-700 px-3 py-2 text-base text-white hover:bg-cyan-600"
+                      >
+                        Comment
+                      </button>
                     </div>
                   </div>
                 )
@@ -442,12 +562,12 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
       </div>
 
       {/* Pagination */}
-      <ReviewsPagination 
-        currentPage={currentPage} 
-        totalPages={totalPages} 
+      <ReviewsPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
         onPageChange={setCurrentPage}
-        totalPosts={filteredFiles.length} 
-        postsPerPage={itemsPerPage} 
+        totalPosts={filteredFiles.length}
+        postsPerPage={itemsPerPage}
       />
 
       {/* Popup form (move inside the component) */}
@@ -459,12 +579,21 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
 
       {openCommentsReviewId && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setOpenCommentsReviewId(null)} />
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setOpenCommentsReviewId(null)}
+          />
           <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-6">
             <div className="w-full max-w-lg sm:max-w-xl rounded-xl bg-white shadow-lg">
               <div className="px-4 sm:px-6 py-3 border-b border-slate-200/60 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-slate-900">Comments</h3>
-                <button type="button" onClick={() => setOpenCommentsReviewId(null)} className="rounded-xl px-3 py-1 text-sm bg-slate-100 text-slate-700 hover:bg-slate-200">Close</button>
+                <button
+                  type="button"
+                  onClick={() => setOpenCommentsReviewId(null)}
+                  className="rounded-xl px-3 py-1 text-sm bg-slate-100 text-slate-700 hover:bg-slate-200"
+                >
+                  Close
+                </button>
               </div>
               <div className="px-4 py-4 sm:px-6 sm:py-6">
                 {activeComments.length === 0 ? (
@@ -475,7 +604,9 @@ export default function Reviews({ onNavigate }: ReviewsProps) {
                       <li key={c.id} className="rounded-xl border border-slate-200 bg-white p-3">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium text-slate-900">{c.userName}</span>
-                          {c.createdAt ? <span className="text-xs text-slate-500">{c.createdAt}</span> : null}
+                          {c.createdAt ? (
+                            <span className="text-xs text-slate-500">{c.createdAt}</span>
+                          ) : null}
                         </div>
                         <p className="mt-1 text-sm text-slate-700">{c.text}</p>
                       </li>

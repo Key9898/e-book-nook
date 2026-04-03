@@ -6,14 +6,17 @@ export function useDarkMode() {
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return
     let storedTheme: string | null = null
-    try { storedTheme = localStorage.getItem('theme') } catch {}
+    try {
+      storedTheme = localStorage.getItem('theme')
+    } catch {}
     if (storedTheme === 'dark' || storedTheme === 'light') {
       const dark = storedTheme === 'dark'
       setIsDark(dark)
       if (dark) document.documentElement.setAttribute('data-theme', 'dark')
       else document.documentElement.removeAttribute('data-theme')
     } else {
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      const prefersDark =
+        window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
       setIsDark(prefersDark)
       if (prefersDark) document.documentElement.setAttribute('data-theme', 'dark')
       else document.documentElement.removeAttribute('data-theme')
@@ -32,7 +35,9 @@ export function useDarkMode() {
     }
     window.addEventListener('storage', onStorage)
     let mql: MediaQueryList | null = null
-    try { mql = window.matchMedia('(prefers-color-scheme: dark)') } catch {}
+    try {
+      mql = window.matchMedia('(prefers-color-scheme: dark)')
+    } catch {}
     const onMedia = (e: MediaQueryListEvent) => {
       try {
         const hasStored = localStorage.getItem('theme')
@@ -57,10 +62,14 @@ export function useDarkMode() {
       const nextMode = !prev
       if (nextMode) {
         document.documentElement.setAttribute('data-theme', 'dark')
-        try { localStorage.setItem('theme', 'dark') } catch {}
+        try {
+          localStorage.setItem('theme', 'dark')
+        } catch {}
       } else {
         document.documentElement.removeAttribute('data-theme')
-        try { localStorage.setItem('theme', 'light') } catch {}
+        try {
+          localStorage.setItem('theme', 'light')
+        } catch {}
       }
       return nextMode
     })
@@ -71,11 +80,11 @@ export function useDarkMode() {
 
 // Keep existing utility functions if needed elsewhere, but use hook in components
 export function toggleDarkMode() {
-   if (document.documentElement.getAttribute('data-theme') === 'dark') {
-       document.documentElement.removeAttribute('data-theme')
-       localStorage.setItem('theme', 'light')
-   } else {
-       document.documentElement.setAttribute('data-theme', 'dark')
-       localStorage.setItem('theme', 'dark')
-   }
- }
+  if (document.documentElement.getAttribute('data-theme') === 'dark') {
+    document.documentElement.removeAttribute('data-theme')
+    localStorage.setItem('theme', 'light')
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dark')
+    localStorage.setItem('theme', 'dark')
+  }
+}

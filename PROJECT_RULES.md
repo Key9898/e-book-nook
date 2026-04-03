@@ -142,21 +142,21 @@ src/
 
 ```typescript
 // 1. React imports
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react'
 
 // 2. Third-party imports
-import { motion } from "framer-motion";
-import { LucideIcon } from "lucide-react";
+import { motion } from 'framer-motion'
+import { LucideIcon } from 'lucide-react'
 
 // 3. Internal imports (absolute)
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/useAuth'
 
 // 4. Relative imports
-import { LocalComponent } from "./LocalComponent";
+import { LocalComponent } from './LocalComponent'
 
 // 5. Type imports
-import type { Props } from "./types";
+import type { Props } from './types'
 ```
 
 ---
@@ -476,16 +476,16 @@ const handleNavigate = (slug: string) => {
 
 ### 15.3 Route Protection
 
-| Route | Auth Required | Notes |
-|-------|---------------|-------|
-| `#home` | No | Public landing |
-| `#collections` | No | Public browsing |
-| `#pdfBooks` | No | Public browsing |
-| `#audiobooks` | No | Public browsing |
-| `#reviews` | No | Public viewing |
-| `#readingGoals` | Yes | User data |
-| `#accountSetting` | Yes | User data |
-| `/admin-panel` | Yes (Admin) | Admin only |
+| Route             | Auth Required | Notes           |
+| ----------------- | ------------- | --------------- |
+| `#home`           | No            | Public landing  |
+| `#collections`    | No            | Public browsing |
+| `#pdfBooks`       | No            | Public browsing |
+| `#audiobooks`     | No            | Public browsing |
+| `#reviews`        | No            | Public viewing  |
+| `#readingGoals`   | Yes           | User data       |
+| `#accountSetting` | Yes           | User data       |
+| `/admin-panel`    | Yes (Admin)   | Admin only      |
 
 ### 15.4 Adding New Routes
 
@@ -500,12 +500,12 @@ const handleNavigate = (slug: string) => {
 
 ### 16.1 State Hierarchy
 
-| State Type | Location | Use Case |
-|------------|----------|----------|
-| **Local State** | `useState` in component | UI-only state (modals, forms) |
-| **Context State** | React Context | Auth, theme, navigation |
-| **Firestore State** | Firebase Firestore | Persistent user data |
-| **localStorage** | Browser storage | Offline fallback, preferences |
+| State Type          | Location                | Use Case                      |
+| ------------------- | ----------------------- | ----------------------------- |
+| **Local State**     | `useState` in component | UI-only state (modals, forms) |
+| **Context State**   | React Context           | Auth, theme, navigation       |
+| **Firestore State** | Firebase Firestore      | Persistent user data          |
+| **localStorage**    | Browser storage         | Offline fallback, preferences |
 
 ### 16.2 When to Use What
 
@@ -543,12 +543,11 @@ const [formData, setFormData] = useState({})
 
 ```tsx
 // Current contexts in App.tsx
-- AuthContext (user, loading, signIn, signUp, signOut)
-- Navigation (currentPage, handleNavigate)
-
-// Planned contexts
-- ThemeContext (darkMode, toggleTheme)
-- ProgressContext (bookProgress, audioProgress)
+;-AuthContext(user, loading, signIn, signUp, signOut) -
+  Navigation(currentPage, handleNavigate) -
+  // Planned contexts
+  ThemeContext(darkMode, toggleTheme) -
+  ProgressContext(bookProgress, audioProgress)
 ```
 
 ---
@@ -557,13 +556,13 @@ const [formData, setFormData] = useState({})
 
 ### 17.1 Branch Naming
 
-| Branch Type | Pattern | Example |
-|-------------|---------|---------|
-| Feature | `feature/description` | `feature/pdf-reader` |
-| Bugfix | `fix/description` | `fix/auth-redirect` |
-| Hotfix | `hotfix/description` | `hotfix/firebase-crash` |
-| Release | `release/vX.Y.Z` | `release/v1.2.0` |
-| Docs | `docs/description` | `docs/api-documentation` |
+| Branch Type | Pattern               | Example                  |
+| ----------- | --------------------- | ------------------------ |
+| Feature     | `feature/description` | `feature/pdf-reader`     |
+| Bugfix      | `fix/description`     | `fix/auth-redirect`      |
+| Hotfix      | `hotfix/description`  | `hotfix/firebase-crash`  |
+| Release     | `release/vX.Y.Z`      | `release/v1.2.0`         |
+| Docs        | `docs/description`    | `docs/api-documentation` |
 
 ### 17.2 Branch Workflow
 
@@ -606,27 +605,27 @@ main (production)
 
 ### 18.2 Commit Types
 
-| Type | Description | Example |
-|------|-------------|---------|
-| `feat` | New feature | `feat(reader): add page zoom` |
-| `fix` | Bug fix | `fix(auth): resolve redirect loop` |
-| `docs` | Documentation | `docs: update README` |
-| `style` | Formatting | `style: format components` |
+| Type       | Description   | Example                            |
+| ---------- | ------------- | ---------------------------------- |
+| `feat`     | New feature   | `feat(reader): add page zoom`      |
+| `fix`      | Bug fix       | `fix(auth): resolve redirect loop` |
+| `docs`     | Documentation | `docs: update README`              |
+| `style`    | Formatting    | `style: format components`         |
 | `refactor` | Code refactor | `refactor(hooks): extract useAuth` |
-| `test` | Adding tests | `test: add PdfReader tests` |
-| `chore` | Maintenance | `chore: update dependencies` |
-| `perf` | Performance | `perf: lazy load images` |
+| `test`     | Adding tests  | `test: add PdfReader tests`        |
+| `chore`    | Maintenance   | `chore: update dependencies`       |
+| `perf`     | Performance   | `perf: lazy load images`           |
 
 ### 18.3 Scope Examples
 
-| Scope | Description |
-|-------|-------------|
-| `auth` | Authentication related |
-| `reader` | PDF/Audio reader |
-| `ui` | UI components |
-| `firebase` | Firebase integration |
-| `routing` | Navigation/routing |
-| `hooks` | Custom hooks |
+| Scope      | Description            |
+| ---------- | ---------------------- |
+| `auth`     | Authentication related |
+| `reader`   | PDF/Audio reader       |
+| `ui`       | UI components          |
+| `firebase` | Firebase integration   |
+| `routing`  | Navigation/routing     |
+| `hooks`    | Custom hooks           |
 
 ### 18.4 Commit Examples
 
@@ -694,22 +693,22 @@ WIP
 
 ### 20.1 Development Tools
 
-| Tool | Purpose |
-|------|---------|
-| React DevTools | Component tree, props, state |
-| Firebase Emulator | Local Firebase testing |
-| Browser DevTools | Network, console, elements |
-| React Profiler | Performance analysis |
+| Tool              | Purpose                      |
+| ----------------- | ---------------------------- |
+| React DevTools    | Component tree, props, state |
+| Firebase Emulator | Local Firebase testing       |
+| Browser DevTools  | Network, console, elements   |
+| React Profiler    | Performance analysis         |
 
 ### 20.2 Common Issues & Solutions
 
-| Issue | Debug Steps |
-|-------|-------------|
-| Auth not working | Check Firebase config, check emulator |
-| Data not loading | Check Firestore rules, check network |
-| Routing broken | Check hash value, check localStorage |
-| Styling issues | Check Tailwind classes, check dark mode |
-| Build errors | Check TypeScript errors, check imports |
+| Issue            | Debug Steps                             |
+| ---------------- | --------------------------------------- |
+| Auth not working | Check Firebase config, check emulator   |
+| Data not loading | Check Firestore rules, check network    |
+| Routing broken   | Check hash value, check localStorage    |
+| Styling issues   | Check Tailwind classes, check dark mode |
+| Build errors     | Check TypeScript errors, check imports  |
 
 ### 20.3 Logging Standards
 
@@ -747,33 +746,33 @@ catch (error) {
 
 ### 21.1 Supported Browsers
 
-| Browser | Minimum Version | Notes |
-|---------|-----------------|-------|
-| Chrome | 90+ | Primary target |
-| Firefox | 88+ | Full support |
-| Safari | 14+ | Full support |
-| Edge | 90+ | Chromium-based |
-| Opera | 76+ | Chromium-based |
+| Browser | Minimum Version | Notes          |
+| ------- | --------------- | -------------- |
+| Chrome  | 90+             | Primary target |
+| Firefox | 88+             | Full support   |
+| Safari  | 14+             | Full support   |
+| Edge    | 90+             | Chromium-based |
+| Opera   | 76+             | Chromium-based |
 
 ### 21.2 Mobile Browsers
 
-| Browser | Minimum Version |
-|---------|-----------------|
-| Chrome Mobile | 90+ |
-| Safari iOS | 14+ |
-| Firefox Mobile | 88+ |
-| Samsung Internet | 14+ |
+| Browser          | Minimum Version |
+| ---------------- | --------------- |
+| Chrome Mobile    | 90+             |
+| Safari iOS       | 14+             |
+| Firefox Mobile   | 88+             |
+| Samsung Internet | 14+             |
 
 ### 21.3 Features Used
 
-| Feature | Support |
-|---------|---------|
-| CSS Grid | All supported browsers |
-| CSS Flexbox | All supported browsers |
-| ES2020+ | All supported browsers |
+| Feature       | Support                |
+| ------------- | ---------------------- |
+| CSS Grid      | All supported browsers |
+| CSS Flexbox   | All supported browsers |
+| ES2020+       | All supported browsers |
 | Web Audio API | All supported browsers |
-| PDF.js | All supported browsers |
-| localStorage | All supported browsers |
+| PDF.js        | All supported browsers |
+| localStorage  | All supported browsers |
 
 ### 21.4 Polyfills
 
@@ -787,14 +786,14 @@ catch (error) {
 
 ### 22.1 Tailwind Breakpoints
 
-| Breakpoint | Prefix | Min Width | Typical Device |
-|------------|--------|-----------|----------------|
-| Default | (none) | 0px | Mobile |
-| Small | `sm:` | 640px | Large mobile |
-| Medium | `md:` | 768px | Tablet |
-| Large | `lg:` | 1024px | Desktop |
-| Extra Large | `xl:` | 1280px | Large desktop |
-| 2XL | `2xl:` | 1536px | Wide screens |
+| Breakpoint  | Prefix | Min Width | Typical Device |
+| ----------- | ------ | --------- | -------------- |
+| Default     | (none) | 0px       | Mobile         |
+| Small       | `sm:`  | 640px     | Large mobile   |
+| Medium      | `md:`  | 768px     | Tablet         |
+| Large       | `lg:`  | 1024px    | Desktop        |
+| Extra Large | `xl:`  | 1280px    | Large desktop  |
+| 2XL         | `2xl:` | 1536px    | Wide screens   |
 
 ### 22.2 Usage Patterns
 
@@ -837,29 +836,29 @@ Always write base styles for mobile, then add breakpoints:
 
 ### 23.1 Primary Colors
 
-| Color | Light Mode | Dark Mode | Usage |
-|-------|------------|-----------|-------|
-| Primary | `#3B82F6` | `#60A5FA` | Buttons, links, accents |
-| Secondary | `#8B5CF6` | `#A78BFA` | Secondary actions |
-| Success | `#22C55E` | `#4ADE80` | Success states |
-| Warning | `#F59E0B` | `#FBBF24` | Warning states |
-| Error | `#EF4444` | `#F87171` | Error states |
+| Color     | Light Mode | Dark Mode | Usage                   |
+| --------- | ---------- | --------- | ----------------------- |
+| Primary   | `#3B82F6`  | `#60A5FA` | Buttons, links, accents |
+| Secondary | `#8B5CF6`  | `#A78BFA` | Secondary actions       |
+| Success   | `#22C55E`  | `#4ADE80` | Success states          |
+| Warning   | `#F59E0B`  | `#FBBF24` | Warning states          |
+| Error     | `#EF4444`  | `#F87171` | Error states            |
 
 ### 23.2 Background Colors
 
-| Color | Light Mode | Dark Mode | Usage |
-|-------|------------|-----------|-------|
-| Background | `#FFFFFF` | `#0F172A` | Page background |
-| Surface | `#F8FAFC` | `#1E293B` | Cards, panels |
-| Elevated | `#FFFFFF` | `#334155` | Modals, dropdowns |
+| Color      | Light Mode | Dark Mode | Usage             |
+| ---------- | ---------- | --------- | ----------------- |
+| Background | `#FFFFFF`  | `#0F172A` | Page background   |
+| Surface    | `#F8FAFC`  | `#1E293B` | Cards, panels     |
+| Elevated   | `#FFFFFF`  | `#334155` | Modals, dropdowns |
 
 ### 23.3 Text Colors
 
-| Color | Light Mode | Dark Mode | Usage |
-|-------|------------|-----------|-------|
-| Primary | `#0F172A` | `#F8FAFC` | Main text |
-| Secondary | `#64748B` | `#94A3B8` | Secondary text |
-| Muted | `#94A3B8` | `#64748B` | Disabled, hints |
+| Color     | Light Mode | Dark Mode | Usage           |
+| --------- | ---------- | --------- | --------------- |
+| Primary   | `#0F172A`  | `#F8FAFC` | Main text       |
+| Secondary | `#64748B`  | `#94A3B8` | Secondary text  |
+| Muted     | `#94A3B8`  | `#64748B` | Disabled, hints |
 
 ### 23.4 Tailwind Usage
 
@@ -884,14 +883,14 @@ All components must meet WCAG 2.1 Level AA standards.
 
 ### 24.2 Required Practices
 
-| Requirement | Implementation |
-|-------------|----------------|
-| Color Contrast | Minimum 4.5:1 for text |
-| Focus Indicators | Visible focus on all interactive elements |
-| Keyboard Navigation | All functions accessible via keyboard |
-| Screen Reader Support | ARIA labels and roles |
-| Alt Text | All images have descriptive alt text |
-| Form Labels | All inputs have associated labels |
+| Requirement           | Implementation                            |
+| --------------------- | ----------------------------------------- |
+| Color Contrast        | Minimum 4.5:1 for text                    |
+| Focus Indicators      | Visible focus on all interactive elements |
+| Keyboard Navigation   | All functions accessible via keyboard     |
+| Screen Reader Support | ARIA labels and roles                     |
+| Alt Text              | All images have descriptive alt text      |
+| Form Labels           | All inputs have associated labels         |
 
 ### 24.3 ARIA Patterns
 
@@ -918,13 +917,13 @@ All components must meet WCAG 2.1 Level AA standards.
 
 ### 24.4 Keyboard Navigation
 
-| Key | Action |
-|-----|--------|
-| Tab | Move to next focusable element |
-| Shift+Tab | Move to previous focusable element |
-| Enter/Space | Activate buttons, links |
-| Escape | Close modals, dropdowns |
-| Arrow keys | Navigate lists, menus |
+| Key         | Action                             |
+| ----------- | ---------------------------------- |
+| Tab         | Move to next focusable element     |
+| Shift+Tab   | Move to previous focusable element |
+| Enter/Space | Activate buttons, links            |
+| Escape      | Close modals, dropdowns            |
+| Arrow keys  | Navigate lists, menus              |
 
 ### 24.5 Testing Tools
 
@@ -939,26 +938,26 @@ All components must meet WCAG 2.1 Level AA standards.
 
 ### 25.1 Firebase Auth Errors
 
-| Code | Description | User Message |
-|------|-------------|--------------|
-| `auth/user-not-found` | No user with this email | "No account found with this email" |
-| `auth/wrong-password` | Incorrect password | "Incorrect password. Please try again" |
-| `auth/email-already-in-use` | Email already registered | "An account with this email already exists" |
-| `auth/weak-password` | Password too weak | "Password must be at least 6 characters" |
-| `auth/invalid-email` | Invalid email format | "Please enter a valid email address" |
-| `auth/too-many-requests` | Too many attempts | "Too many attempts. Please try again later" |
-| `auth/popup-closed-by-user` | User closed popup | "Sign in was cancelled" |
-| `auth/network-request-failed` | Network error | "Network error. Please check your connection" |
+| Code                          | Description              | User Message                                  |
+| ----------------------------- | ------------------------ | --------------------------------------------- |
+| `auth/user-not-found`         | No user with this email  | "No account found with this email"            |
+| `auth/wrong-password`         | Incorrect password       | "Incorrect password. Please try again"        |
+| `auth/email-already-in-use`   | Email already registered | "An account with this email already exists"   |
+| `auth/weak-password`          | Password too weak        | "Password must be at least 6 characters"      |
+| `auth/invalid-email`          | Invalid email format     | "Please enter a valid email address"          |
+| `auth/too-many-requests`      | Too many attempts        | "Too many attempts. Please try again later"   |
+| `auth/popup-closed-by-user`   | User closed popup        | "Sign in was cancelled"                       |
+| `auth/network-request-failed` | Network error            | "Network error. Please check your connection" |
 
 ### 25.2 Firestore Errors
 
-| Code | Description | User Message |
-|------|-------------|--------------|
-| `permission-denied` | Security rules blocked | "You don't have permission to access this" |
-| `not-found` | Document doesn't exist | "The requested data was not found" |
-| `already-exists` | Document already exists | "This item already exists" |
-| `resource-exhausted` | Quota exceeded | "Service temporarily unavailable" |
-| `unavailable` | Service unavailable | "Service temporarily unavailable" |
+| Code                 | Description             | User Message                               |
+| -------------------- | ----------------------- | ------------------------------------------ |
+| `permission-denied`  | Security rules blocked  | "You don't have permission to access this" |
+| `not-found`          | Document doesn't exist  | "The requested data was not found"         |
+| `already-exists`     | Document already exists | "This item already exists"                 |
+| `resource-exhausted` | Quota exceeded          | "Service temporarily unavailable"          |
+| `unavailable`        | Service unavailable     | "Service temporarily unavailable"          |
 
 ### 25.3 Custom Error Handling
 
@@ -989,22 +988,22 @@ const getErrorMessage = (error: unknown): string => {
 
 ### 26.1 Bundle Size Limits
 
-| Metric | Budget | Current | Status |
-|--------|--------|---------|--------|
-| Initial JS | < 300KB | TBD | Monitor |
-| Initial CSS | < 50KB | TBD | Monitor |
-| Total Bundle | < 500KB | TBD | Monitor |
-| Chunk Size | < 100KB each | TBD | Monitor |
+| Metric       | Budget       | Current | Status  |
+| ------------ | ------------ | ------- | ------- |
+| Initial JS   | < 300KB      | TBD     | Monitor |
+| Initial CSS  | < 50KB       | TBD     | Monitor |
+| Total Bundle | < 500KB      | TBD     | Monitor |
+| Chunk Size   | < 100KB each | TBD     | Monitor |
 
 ### 26.2 Performance Metrics
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| First Contentful Paint | < 1.5s | Lighthouse |
-| Largest Contentful Paint | < 2.5s | Lighthouse |
-| Time to Interactive | < 3.5s | Lighthouse |
-| Cumulative Layout Shift | < 0.1 | Lighthouse |
-| First Input Delay | < 100ms | Lighthouse |
+| Metric                   | Target  | Measurement |
+| ------------------------ | ------- | ----------- |
+| First Contentful Paint   | < 1.5s  | Lighthouse  |
+| Largest Contentful Paint | < 2.5s  | Lighthouse  |
+| Time to Interactive      | < 3.5s  | Lighthouse  |
+| Cumulative Layout Shift  | < 0.1   | Lighthouse  |
+| First Input Delay        | < 100ms | Lighthouse  |
 
 ### 26.3 Optimization Rules
 
@@ -1014,7 +1013,7 @@ const PdfReader = lazy(() => import('./PdfReader'))
 const AudioPlayer = lazy(() => import('./AudioPlayer'))
 
 // Memoize expensive calculations
-const sortedBooks = useMemo(() => 
+const sortedBooks = useMemo(() =>
   books.sort((a, b) => a.title.localeCompare(b.title)),
   [books]
 )
@@ -1025,8 +1024,8 @@ const handleClick = useCallback((id: string) => {
 }, [dependency])
 
 // Image optimization
-<img 
-  src={coverUrl} 
+<img
+  src={coverUrl}
   alt={title}
   loading="lazy"
   decoding="async"

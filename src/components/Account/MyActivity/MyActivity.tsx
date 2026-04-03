@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { onAuthStateChanged, type User } from 'firebase/auth'
 import { auth, db } from '../../../firebaseConfig'
-import { collection, getDocs, doc, setDoc, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore'
+import {
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  onSnapshot,
+  addDoc,
+  serverTimestamp,
+} from 'firebase/firestore'
 import { Calendar } from '@/components/ui/calendar'
 import { ChartLineMultiple } from './Charts/LineChart'
 import { ChartBarDefault } from './Charts/BarChart'
@@ -64,11 +72,11 @@ export default function MyActivity() {
             message: `You completed your reading goal (${goalTarget} ${goalUnitLabel}). Great job!`,
             read: false,
             createdAt: serverTimestamp(),
-          }).catch(() => { })
+          }).catch(() => {})
           localStorage.setItem(key, '1')
         }
       }
-    } catch { }
+    } catch {}
   }, [goalCompleted, goalTarget, user?.uid, goalUnitLabel])
 
   useEffect(() => {
@@ -84,7 +92,10 @@ export default function MyActivity() {
     }
     setLineData(months.map((m) => ({ month: m.label, pdf: 0, audio: 0 })))
     setBarData(months.map((m) => ({ month: m.label, pdf: 0, audio: 0 })))
-    setPieData([{ name: 'PDF', value: 0 }, { name: 'Audio', value: 0 }])
+    setPieData([
+      { name: 'PDF', value: 0 },
+      { name: 'Audio', value: 0 },
+    ])
     const today = new Date(now)
     const dayOfWeek = today.getDay()
     const sunday = new Date(today)
@@ -128,68 +139,101 @@ export default function MyActivity() {
 
       if (uid && db) {
         try {
-          await setDoc(doc(db, 'users', uid, 'appActivity', String(todayStart)), { ts: now }, { merge: true })
-        } catch { }
+          await setDoc(
+            doc(db, 'users', uid, 'appActivity', String(todayStart)),
+            { ts: now },
+            { merge: true }
+          )
+        } catch {}
         try {
           const snap = await getDocs(collection(db, 'users', uid, 'my_library'))
           finishedDocs = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
-        } catch { }
+        } catch {}
         try {
           const logsSnap = await getDocs(collection(db, 'users', uid, 'readingTime'))
-          readingLogs = logsSnap.docs.map((d) => ({ minutes: Number((d.data() as any)?.minutes || 0), ts: Number((d.data() as any)?.ts || 0) })).filter((x) => x.minutes > 0 && x.ts > 0)
-        } catch { }
+          readingLogs = logsSnap.docs
+            .map((d) => ({
+              minutes: Number((d.data() as any)?.minutes || 0),
+              ts: Number((d.data() as any)?.ts || 0),
+            }))
+            .filter((x) => x.minutes > 0 && x.ts > 0)
+        } catch {}
         try {
           const rpSnap = await getDocs(collection(db, 'users', uid, 'readingProgress'))
-          const rpLast = rpSnap.docs.map((d) => Number((d.data() as any)?.lastActivityTs || 0)).filter((x) => x > 0)
+          const rpLast = rpSnap.docs
+            .map((d) => Number((d.data() as any)?.lastActivityTs || 0))
+            .filter((x) => x > 0)
           activityTs.push(...rpLast)
           readingLastTs.push(...rpLast)
-          completedPdf = rpSnap.docs.filter((d) => Number((d.data() as any)?.completedTs || 0) > 0).length
-          pdfCompletedTs = rpSnap.docs.map((d) => Number((d.data() as any)?.completedTs || 0)).filter((x) => x > 0)
-        } catch { }
+          completedPdf = rpSnap.docs.filter(
+            (d) => Number((d.data() as any)?.completedTs || 0) > 0
+          ).length
+          pdfCompletedTs = rpSnap.docs
+            .map((d) => Number((d.data() as any)?.completedTs || 0))
+            .filter((x) => x > 0)
+        } catch {}
         try {
           const apSnap = await getDocs(collection(db, 'users', uid, 'audioProgress'))
-          const apLast = apSnap.docs.map((d) => Number((d.data() as any)?.lastActivityTs || 0)).filter((x) => x > 0)
+          const apLast = apSnap.docs
+            .map((d) => Number((d.data() as any)?.lastActivityTs || 0))
+            .filter((x) => x > 0)
           activityTs.push(...apLast)
           audioLastTs.push(...apLast)
-          completedAudio = apSnap.docs.filter((d) => Number((d.data() as any)?.completedTs || 0) > 0).length
-          audioCompletedTs = apSnap.docs.map((d) => Number((d.data() as any)?.completedTs || 0)).filter((x) => x > 0)
-          audioDurMin = Math.floor(apSnap.docs.reduce((s, d) => {
-            const data = d.data() as any
-            const dur = Number(data?.durationMs || 0)
-            if (Number(data?.completedTs || 0) > 0) return s + dur
-            if (typeof data?.progress === 'number') return s + (dur * data.progress)
-            return s
-          }, 0) / 60000)
-        } catch { }
+          completedAudio = apSnap.docs.filter(
+            (d) => Number((d.data() as any)?.completedTs || 0) > 0
+          ).length
+          audioCompletedTs = apSnap.docs
+            .map((d) => Number((d.data() as any)?.completedTs || 0))
+            .filter((x) => x > 0)
+          audioDurMin = Math.floor(
+            apSnap.docs.reduce((s, d) => {
+              const data = d.data() as any
+              const dur = Number(data?.durationMs || 0)
+              if (Number(data?.completedTs || 0) > 0) return s + dur
+              if (typeof data?.progress === 'number') return s + dur * data.progress
+              return s
+            }, 0) / 60000
+          )
+        } catch {}
         try {
           const actSnap = await getDocs(collection(db, 'users', uid, 'appActivity'))
-          activityTs.push(...actSnap.docs.map((d) => Number((d.data() as any)?.ts || 0)).filter((x) => x > 0))
-        } catch { }
+          activityTs.push(
+            ...actSnap.docs.map((d) => Number((d.data() as any)?.ts || 0)).filter((x) => x > 0)
+          )
+        } catch {}
         try {
           const goalsSnap = await getDocs(collection(db, 'users', uid, 'readingGoals'))
           const goals = goalsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
-          goals.forEach((g) => { if (g.id !== 'current') { totalTarget += Number(g?.target || g?.targetAmount || 0); const u = String(g?.unit || '').trim(); if (u) units.add(u) } })
-        } catch { }
+          goals.forEach((g) => {
+            if (g.id !== 'current') {
+              totalTarget += Number(g?.target || g?.targetAmount || 0)
+              const u = String(g?.unit || '').trim()
+              if (u) units.add(u)
+            }
+          })
+        } catch {}
       }
 
       if (!uid) {
         try {
           const rawDays = localStorage.getItem('appActivityDays')
           const arr = rawDays ? JSON.parse(rawDays) : []
-          const exists = Array.isArray(arr) ? arr.some((d: any) => Number(d) === Number(todayStart)) : false
+          const exists = Array.isArray(arr)
+            ? arr.some((d: any) => Number(d) === Number(todayStart))
+            : false
           const next = Array.isArray(arr) ? (exists ? arr : [...arr, todayStart]) : [todayStart]
           localStorage.setItem('appActivityDays', JSON.stringify(next))
-        } catch { }
+        } catch {}
         try {
           const raw = localStorage.getItem('my_library')
           const list = raw ? JSON.parse(raw) : []
           finishedDocs = Array.isArray(list) ? list : []
-        } catch { }
+        } catch {}
         try {
           const raw = localStorage.getItem('readingTimeLogs')
           const list = raw ? JSON.parse(raw) : []
           readingLogs = Array.isArray(list) ? list : []
-        } catch { }
+        } catch {}
         try {
           const i: number[] = []
           for (let k = 0; k < localStorage.length; k++) {
@@ -200,44 +244,64 @@ export default function MyActivity() {
                 const obj = v ? JSON.parse(v) : null
                 const ts = Number(obj?.lastActivityTs || 0)
                 if (ts > 0) i.push(ts)
-                if (key.startsWith('readingProgress:')) { if (Number(obj?.completedTs || 0) > 0) completedPdf += 1 }
-                if (key.startsWith('audioProgress:')) { if (Number(obj?.completedTs || 0) > 0) completedAudio += 1 }
+                if (key.startsWith('readingProgress:')) {
+                  if (Number(obj?.completedTs || 0) > 0) completedPdf += 1
+                }
+                if (key.startsWith('audioProgress:')) {
+                  if (Number(obj?.completedTs || 0) > 0) completedAudio += 1
+                }
                 const cts = Number(obj?.completedTs || 0)
                 if (key.startsWith('readingProgress:') && cts > 0) pdfCompletedTs.push(cts)
                 if (key.startsWith('audioProgress:') && cts > 0) audioCompletedTs.push(cts)
                 if (key.startsWith('readingProgress:') && ts > 0) readingLastTs.push(ts)
                 if (key.startsWith('audioProgress:') && ts > 0) audioLastTs.push(ts)
-              } catch { }
+              } catch {}
             }
           }
           try {
             const rawDays = localStorage.getItem('appActivityDays')
             const arr = rawDays ? JSON.parse(rawDays) : []
-            if (Array.isArray(arr)) { arr.forEach((d: any) => { const ts = Number(d || 0); if (ts > 0) i.push(ts) }) }
-          } catch { }
+            if (Array.isArray(arr)) {
+              arr.forEach((d: any) => {
+                const ts = Number(d || 0)
+                if (ts > 0) i.push(ts)
+              })
+            }
+          } catch {}
           activityTs = i
-        } catch { }
+        } catch {}
         try {
           const raw = localStorage.getItem('readingGoals')
           const list = raw ? JSON.parse(raw) : []
-          if (Array.isArray(list)) { list.forEach((g: any) => { totalTarget += Number(g?.target || g?.targetAmount || 0); const u = String(g?.unit || '').trim(); if (u) units.add(u) }) }
-        } catch { }
+          if (Array.isArray(list)) {
+            list.forEach((g: any) => {
+              totalTarget += Number(g?.target || g?.targetAmount || 0)
+              const u = String(g?.unit || '').trim()
+              if (u) units.add(u)
+            })
+          }
+        } catch {}
       }
 
-      const finishedList = finishedDocs.filter((d) => String(d.status || '').toLowerCase() === 'finished')
+      const finishedList = finishedDocs.filter(
+        (d) => String(d.status || '').toLowerCase() === 'finished'
+      )
       const totalFinishedCount = finishedList.length
-
 
       const oneDay = 24 * 60 * 60 * 1000
       const last30Start = now - 30 * oneDay
       const prev30Start = now - 60 * oneDay
       const last30 = finishedList.filter((d) => Number(d.finishedTs || 0) >= last30Start).length
-      const prev30 = finishedList.filter((d) => Number(d.finishedTs || 0) >= prev30Start && Number(d.finishedTs || 0) < last30Start).length
+      const prev30 = finishedList.filter(
+        (d) => Number(d.finishedTs || 0) >= prev30Start && Number(d.finishedTs || 0) < last30Start
+      ).length
       const delta = Math.max(0, last30 - prev30)
 
       const totalMin = Math.max(0, Math.floor(audioDurMin))
       const weekStart = now - 7 * oneDay
-      const weekMin = readingLogs.filter((x) => Number(x.ts || 0) >= weekStart).reduce((s, x) => s + Math.max(0, Number(x.minutes || 0)), 0)
+      const weekMin = readingLogs
+        .filter((x) => Number(x.ts || 0) >= weekStart)
+        .reduce((s, x) => s + Math.max(0, Number(x.minutes || 0)), 0)
 
       const days = new Set<number>(activityTs.map((ts) => startOfDay(ts)))
       let streakCount = 0
@@ -256,7 +320,14 @@ export default function MyActivity() {
       const goalDone = Math.min(totalTarget || 0, combinedCompleted)
       setGoalTarget(totalTarget || 0)
       setGoalCompleted(goalDone)
-      const label: 'Books' | 'Audiobooks' | 'Items' = units.size === 1 ? (units.has('AudioBooks') ? 'Audiobooks' : 'Books') : units.size === 0 ? 'Books' : 'Items'
+      const label: 'Books' | 'Audiobooks' | 'Items' =
+        units.size === 1
+          ? units.has('AudioBooks')
+            ? 'Audiobooks'
+            : 'Books'
+          : units.size === 0
+            ? 'Books'
+            : 'Items'
       setGoalUnitLabel(label)
       const months: { label: string; year: number; monthIndex: number; key: string }[] = []
       for (let i = 11; i >= 0; i--) {
@@ -272,11 +343,18 @@ export default function MyActivity() {
       readingLogs.forEach((log) => {
         const d = new Date(Number(log.ts || 0))
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-        if (readingByMonth.has(key)) readingByMonth.set(key, (readingByMonth.get(key) || 0) + Math.max(0, Number(log.minutes || 0)))
+        if (readingByMonth.has(key))
+          readingByMonth.set(
+            key,
+            (readingByMonth.get(key) || 0) + Math.max(0, Number(log.minutes || 0))
+          )
       })
       const pdfByMonth = new Map<string, number>()
       const audioByMonth = new Map<string, number>()
-      months.forEach((m) => { pdfByMonth.set(m.key, 0); audioByMonth.set(m.key, 0) })
+      months.forEach((m) => {
+        pdfByMonth.set(m.key, 0)
+        audioByMonth.set(m.key, 0)
+      })
       pdfCompletedTs.forEach((ts) => {
         const d = new Date(ts)
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
@@ -287,11 +365,22 @@ export default function MyActivity() {
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
         if (audioByMonth.has(key)) audioByMonth.set(key, (audioByMonth.get(key) || 0) + 1)
       })
-      const nextLine = months.map((m) => ({ month: m.label, pdf: pdfByMonth.get(m.key) || 0, audio: audioByMonth.get(m.key) || 0 }))
+      const nextLine = months.map((m) => ({
+        month: m.label,
+        pdf: pdfByMonth.get(m.key) || 0,
+        audio: audioByMonth.get(m.key) || 0,
+      }))
       setLineData(nextLine)
-      const nextBar = months.map((m) => ({ month: m.label, pdf: pdfByMonth.get(m.key) || 0, audio: audioByMonth.get(m.key) || 0 }))
+      const nextBar = months.map((m) => ({
+        month: m.label,
+        pdf: pdfByMonth.get(m.key) || 0,
+        audio: audioByMonth.get(m.key) || 0,
+      }))
       setBarData(nextBar)
-      setPieData([{ name: 'PDF', value: completedPdf }, { name: 'Audio', value: completedAudio }])
+      setPieData([
+        { name: 'PDF', value: completedPdf },
+        { name: 'Audio', value: completedAudio },
+      ])
       const weekPoints: { date: string; reading: number; audio: number }[] = []
       const today = new Date(now)
       const dayOfWeek = today.getDay()
@@ -302,15 +391,34 @@ export default function MyActivity() {
         const d = new Date(sunday)
         d.setDate(sunday.getDate() + i)
         const dayStart = startOfDay(d.getTime())
-        const readingMin = readingLogs.filter((x) => startOfDay(Number(x.ts || 0)) === dayStart).reduce((s, x) => s + Math.max(0, Number(x.minutes || 0)), 0)
+        const readingMin = readingLogs
+          .filter((x) => startOfDay(Number(x.ts || 0)) === dayStart)
+          .reduce((s, x) => s + Math.max(0, Number(x.minutes || 0)), 0)
         const audioCount = audioLastTs.filter((ts) => startOfDay(ts) === dayStart).length
-        weekPoints.push({ date: new Date(dayStart).toISOString(), reading: readingMin, audio: audioCount })
+        weekPoints.push({
+          date: new Date(dayStart).toISOString(),
+          reading: readingMin,
+          audio: audioCount,
+        })
       }
       setWeekData(weekPoints)
       // initial compute
       const unitsSet = units
-      recompute(readingLogs, activityTs, audioLastTs, pdfCompletedTs, audioCompletedTs, totalTarget, unitsSet, totalMin)
-      const daysSet = new Set<number>([...readingLastTs, ...audioLastTs, ...pdfCompletedTs, ...audioCompletedTs].map((ts) => startOfDay(Number(ts || 0))).filter((v) => v > 0))
+      recompute(
+        readingLogs,
+        activityTs,
+        audioLastTs,
+        pdfCompletedTs,
+        audioCompletedTs,
+        totalTarget,
+        unitsSet,
+        totalMin
+      )
+      const daysSet = new Set<number>(
+        [...readingLastTs, ...audioLastTs, ...pdfCompletedTs, ...audioCompletedTs]
+          .map((ts) => startOfDay(Number(ts || 0)))
+          .filter((v) => v > 0)
+      )
       setActivityDates(Array.from(daysSet).map((ts) => new Date(ts)))
       setPdfCompletedTsState(pdfCompletedTs)
       setAudioCompletedTsState(audioCompletedTs)
@@ -319,7 +427,10 @@ export default function MyActivity() {
   }, [user?.uid])
 
   useEffect(() => {
-    if (!selectedDate) { setSummaryText(''); return }
+    if (!selectedDate) {
+      setSummaryText('')
+      return
+    }
     const start = startOfDay(selectedDate.getTime())
     const end = start + 24 * 60 * 60 * 1000
     const pdfCount = pdfCompletedTsState.filter((ts) => ts >= start && ts < end).length
@@ -346,11 +457,15 @@ export default function MyActivity() {
     const prev30Start = now - 60 * oneDay
     const allCompleted = [...(pdfCompletedTs || []), ...(audioCompletedTs || [])]
     const last30 = allCompleted.filter((ts) => Number(ts || 0) >= last30Start).length
-    const prev30 = allCompleted.filter((ts) => Number(ts || 0) >= prev30Start && Number(ts || 0) < last30Start).length
+    const prev30 = allCompleted.filter(
+      (ts) => Number(ts || 0) >= prev30Start && Number(ts || 0) < last30Start
+    ).length
     const delta = Math.max(0, last30 - prev30)
     const totalMin = Math.max(0, Math.floor(audioDurMin))
     const weekStart = now - 7 * oneDay
-    const weekMin = readingLogs.filter((x) => Number(x.ts || 0) >= weekStart).reduce((s, x) => s + Math.max(0, Number(x.minutes || 0)), 0)
+    const weekMin = readingLogs
+      .filter((x) => Number(x.ts || 0) >= weekStart)
+      .reduce((s, x) => s + Math.max(0, Number(x.minutes || 0)), 0)
     const days = new Set<number>(activityTs.map((ts) => startOfDay(ts)))
     let streakCount = 0
     for (let i = 0; i < 365; i++) {
@@ -368,7 +483,14 @@ export default function MyActivity() {
     const goalDone = Math.min(totalTarget || 0, combinedCompleted)
     setGoalTarget(totalTarget || 0)
     setGoalCompleted(goalDone)
-    const label: 'Books' | 'Audiobooks' | 'Items' = units.size === 1 ? (units.has('AudioBooks') ? 'Audiobooks' : 'Books') : units.size === 0 ? 'Books' : 'Items'
+    const label: 'Books' | 'Audiobooks' | 'Items' =
+      units.size === 1
+        ? units.has('AudioBooks')
+          ? 'Audiobooks'
+          : 'Books'
+        : units.size === 0
+          ? 'Books'
+          : 'Items'
     setGoalUnitLabel(label)
     const months: { label: string; year: number; monthIndex: number; key: string }[] = []
     for (let i = 11; i >= 0; i--) {
@@ -384,11 +506,18 @@ export default function MyActivity() {
     readingLogs.forEach((log) => {
       const d = new Date(Number(log.ts || 0))
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-      if (readingByMonth.has(key)) readingByMonth.set(key, (readingByMonth.get(key) || 0) + Math.max(0, Number(log.minutes || 0)))
+      if (readingByMonth.has(key))
+        readingByMonth.set(
+          key,
+          (readingByMonth.get(key) || 0) + Math.max(0, Number(log.minutes || 0))
+        )
     })
     const pdfByMonth = new Map<string, number>()
     const audioByMonth = new Map<string, number>()
-    months.forEach((m) => { pdfByMonth.set(m.key, 0); audioByMonth.set(m.key, 0) })
+    months.forEach((m) => {
+      pdfByMonth.set(m.key, 0)
+      audioByMonth.set(m.key, 0)
+    })
     pdfCompletedTs.forEach((ts) => {
       const d = new Date(ts)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
@@ -399,11 +528,22 @@ export default function MyActivity() {
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       if (audioByMonth.has(key)) audioByMonth.set(key, (audioByMonth.get(key) || 0) + 1)
     })
-    const nextLine = months.map((m) => ({ month: m.label, pdf: pdfByMonth.get(m.key) || 0, audio: audioByMonth.get(m.key) || 0 }))
+    const nextLine = months.map((m) => ({
+      month: m.label,
+      pdf: pdfByMonth.get(m.key) || 0,
+      audio: audioByMonth.get(m.key) || 0,
+    }))
     setLineData(nextLine)
-    const nextBar = months.map((m) => ({ month: m.label, pdf: pdfByMonth.get(m.key) || 0, audio: audioByMonth.get(m.key) || 0 }))
+    const nextBar = months.map((m) => ({
+      month: m.label,
+      pdf: pdfByMonth.get(m.key) || 0,
+      audio: audioByMonth.get(m.key) || 0,
+    }))
     setBarData(nextBar)
-    setPieData([{ name: 'PDF', value: pdfCompletedTs.length }, { name: 'Audio', value: audioCompletedTs.length }])
+    setPieData([
+      { name: 'PDF', value: pdfCompletedTs.length },
+      { name: 'Audio', value: audioCompletedTs.length },
+    ])
     const weekPoints: { date: string; reading: number; audio: number }[] = []
     const today = new Date(now)
     const dayOfWeek = today.getDay()
@@ -414,9 +554,15 @@ export default function MyActivity() {
       const d = new Date(sunday)
       d.setDate(sunday.getDate() + i)
       const dayStart = startOfDay(d.getTime())
-      const readingMin = readingLogs.filter((x) => startOfDay(Number(x.ts || 0)) === dayStart).reduce((s, x) => s + Math.max(0, Number(x.minutes || 0)), 0)
+      const readingMin = readingLogs
+        .filter((x) => startOfDay(Number(x.ts || 0)) === dayStart)
+        .reduce((s, x) => s + Math.max(0, Number(x.minutes || 0)), 0)
       const audioCount = audioLastTs.filter((ts) => startOfDay(ts) === dayStart).length
-      weekPoints.push({ date: new Date(dayStart).toISOString(), reading: readingMin, audio: audioCount })
+      weekPoints.push({
+        date: new Date(dayStart).toISOString(),
+        reading: readingMin,
+        audio: audioCount,
+      })
     }
     setWeekData(weekPoints)
     setPdfCompletedTsState(pdfCompletedTs)
@@ -436,61 +582,156 @@ export default function MyActivity() {
     let audioLastTs: number[] = []
     let audioDurMin: number = 0
     const u1 = onSnapshot(collection(db, 'users', uid, 'my_library'), () => {
-      recompute(readingLogs, activityTs, audioLastTs, pdfCompletedTs, audioCompletedTs, totalTarget, units, audioDurMin)
+      recompute(
+        readingLogs,
+        activityTs,
+        audioLastTs,
+        pdfCompletedTs,
+        audioCompletedTs,
+        totalTarget,
+        units,
+        audioDurMin
+      )
     })
     const u2 = onSnapshot(collection(db, 'users', uid, 'readingTime'), (snap) => {
-      readingLogs = snap.docs.map((d) => ({ minutes: Number((d.data() as any)?.minutes || 0), ts: Number((d.data() as any)?.ts || 0) })).filter((x) => x.minutes > 0 && x.ts > 0)
-      recompute(readingLogs, activityTs, audioLastTs, pdfCompletedTs, audioCompletedTs, totalTarget, units, audioDurMin)
+      readingLogs = snap.docs
+        .map((d) => ({
+          minutes: Number((d.data() as any)?.minutes || 0),
+          ts: Number((d.data() as any)?.ts || 0),
+        }))
+        .filter((x) => x.minutes > 0 && x.ts > 0)
+      recompute(
+        readingLogs,
+        activityTs,
+        audioLastTs,
+        pdfCompletedTs,
+        audioCompletedTs,
+        totalTarget,
+        units,
+        audioDurMin
+      )
     })
     const u3 = onSnapshot(collection(db, 'users', uid, 'readingProgress'), (snap) => {
-      const rpLast = snap.docs.map((d) => Number((d.data() as any)?.lastActivityTs || 0)).filter((x) => x > 0)
+      const rpLast = snap.docs
+        .map((d) => Number((d.data() as any)?.lastActivityTs || 0))
+        .filter((x) => x > 0)
       activityTs = [...rpLast]
-      pdfCompletedTs = snap.docs.map((d) => Number((d.data() as any)?.completedTs || 0)).filter((x) => x > 0)
-      recompute(readingLogs, activityTs, audioLastTs, pdfCompletedTs, audioCompletedTs, totalTarget, units, audioDurMin)
+      pdfCompletedTs = snap.docs
+        .map((d) => Number((d.data() as any)?.completedTs || 0))
+        .filter((x) => x > 0)
+      recompute(
+        readingLogs,
+        activityTs,
+        audioLastTs,
+        pdfCompletedTs,
+        audioCompletedTs,
+        totalTarget,
+        units,
+        audioDurMin
+      )
     })
     const u4 = onSnapshot(collection(db, 'users', uid, 'audioProgress'), (snap) => {
-      const apLast = snap.docs.map((d) => Number((d.data() as any)?.lastActivityTs || 0)).filter((x) => x > 0)
+      const apLast = snap.docs
+        .map((d) => Number((d.data() as any)?.lastActivityTs || 0))
+        .filter((x) => x > 0)
       activityTs = [...activityTs, ...apLast]
       audioLastTs = [...apLast]
-      audioCompletedTs = snap.docs.map((d) => Number((d.data() as any)?.completedTs || 0)).filter((x) => x > 0)
-      audioDurMin = Math.floor(snap.docs.reduce((s, d) => {
-        const data = d.data() as any
-        const dur = Number(data?.durationMs || 0)
-        if (Number(data?.completedTs || 0) > 0) return s + dur
-        if (typeof data?.progress === 'number') return s + (dur * data.progress)
-        return s
-      }, 0) / 60000)
-      recompute(readingLogs, activityTs, audioLastTs, pdfCompletedTs, audioCompletedTs, totalTarget, units, audioDurMin)
+      audioCompletedTs = snap.docs
+        .map((d) => Number((d.data() as any)?.completedTs || 0))
+        .filter((x) => x > 0)
+      audioDurMin = Math.floor(
+        snap.docs.reduce((s, d) => {
+          const data = d.data() as any
+          const dur = Number(data?.durationMs || 0)
+          if (Number(data?.completedTs || 0) > 0) return s + dur
+          if (typeof data?.progress === 'number') return s + dur * data.progress
+          return s
+        }, 0) / 60000
+      )
+      recompute(
+        readingLogs,
+        activityTs,
+        audioLastTs,
+        pdfCompletedTs,
+        audioCompletedTs,
+        totalTarget,
+        units,
+        audioDurMin
+      )
     })
     const u5 = onSnapshot(collection(db, 'users', uid, 'appActivity'), (snap) => {
       const arr = snap.docs.map((d) => Number((d.data() as any)?.ts || 0)).filter((x) => x > 0)
       activityTs = [...activityTs, ...arr]
-      recompute(readingLogs, activityTs, audioLastTs, pdfCompletedTs, audioCompletedTs, totalTarget, units, audioDurMin)
+      recompute(
+        readingLogs,
+        activityTs,
+        audioLastTs,
+        pdfCompletedTs,
+        audioCompletedTs,
+        totalTarget,
+        units,
+        audioDurMin
+      )
     })
     const u6 = onSnapshot(collection(db, 'users', uid, 'readingGoals'), (snap) => {
       totalTarget = 0
       units = new Set()
       const goals = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
-      goals.forEach((g) => { if (g.id !== 'current') { totalTarget += Number(g?.target || g?.targetAmount || 0); const u = String(g?.unit || '').trim(); if (u) units.add(u) } })
-      recompute(readingLogs, activityTs, audioLastTs, pdfCompletedTs, audioCompletedTs, totalTarget, units, audioDurMin)
+      goals.forEach((g) => {
+        if (g.id !== 'current') {
+          totalTarget += Number(g?.target || g?.targetAmount || 0)
+          const u = String(g?.unit || '').trim()
+          if (u) units.add(u)
+        }
+      })
+      recompute(
+        readingLogs,
+        activityTs,
+        audioLastTs,
+        pdfCompletedTs,
+        audioCompletedTs,
+        totalTarget,
+        units,
+        audioDurMin
+      )
     })
-    return () => { u1(); u2(); u3(); u4(); u5(); u6() }
+    return () => {
+      u1()
+      u2()
+      u3()
+      u4()
+      u5()
+      u6()
+    }
   }, [user?.uid])
 
   return (
     <div className="px-2 sm:px-4 lg:px-7 pt-8">
       <div>
-        <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-slate-900">My Activity</h2>
+        <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-slate-900">
+          My Activity
+        </h2>
         <div className="mt-3 mb-6 rounded-xl border border-slate-200 bg-white p-4 flex items-center justify-between">
-          <div className="text-sm text-slate-500">Track your literary journey and celebrate every milestone.</div>
+          <div className="text-sm text-slate-500">
+            Track your literary journey and celebrate every milestone.
+          </div>
           <button
             type="button"
             className="rounded-md bg-cyan-700 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-cyan-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700"
             onClick={() => {
               try {
-                const monthRows = barData.map((b) => `<tr><td>${b.month}</td><td>${b.pdf}</td><td>${b.audio}</td></tr>`).join('')
-                const lineRows = lineData.map((l) => `<tr><td>${l.month}</td><td>${l.pdf}</td><td>${l.audio}</td></tr>`).join('')
-                const weekRows = weekData.map((w) => `<tr><td>${new Date(w.date).toLocaleDateString()}</td><td>${w.reading}</td><td>${w.audio}</td></tr>`).join('')
+                const monthRows = barData
+                  .map((b) => `<tr><td>${b.month}</td><td>${b.pdf}</td><td>${b.audio}</td></tr>`)
+                  .join('')
+                const lineRows = lineData
+                  .map((l) => `<tr><td>${l.month}</td><td>${l.pdf}</td><td>${l.audio}</td></tr>`)
+                  .join('')
+                const weekRows = weekData
+                  .map(
+                    (w) =>
+                      `<tr><td>${new Date(w.date).toLocaleDateString()}</td><td>${w.reading}</td><td>${w.audio}</td></tr>`
+                  )
+                  .join('')
                 const html = `<!doctype html><html><head><meta charset=\"utf-8\"><title>My Activity</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding:24px;color:#0f172a}h1{font-size:20px;margin:0 0 12px}h2{font-size:16px;margin:16px 0 8px}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #e2e8f0;padding:6px;text-align:left}th{background:#f8fafc}small{color:#64748b}</style></head><body><h1>My Activity</h1><small>Generated ${new Date().toLocaleString()}</small><table><tbody><tr><th>Total Books Read</th><td>${String(totalFinished)}</td></tr><tr><th>Total Hours Read</th><td>${String(totalHM)}</td></tr><tr><th>Current Streak</th><td>${String(streak)} days</td></tr><tr><th>Reading Goal Progress</th><td>${String(goalCompleted)}/${String(goalTarget)} ${String(goalUnitLabel)} (${String(goalPercent)}%)</td></tr><tr><th>This Week</th><td>${String(weekDeltaLabel)}</td></tr></tbody></table><h2>Monthly Totals</h2><table><thead><tr><th>Month</th><th>Finished</th></tr></thead><tbody>${monthRows}</tbody></table><h2>Monthly PDF vs Audio</h2><table><thead><tr><th>Month</th><th>PDF</th><th>Audio</th></tr></thead><tbody>${lineRows}</tbody></table><h2>Weekly Activity</h2><table><thead><tr><th>Date</th><th>Reading Minutes</th><th>Audio Sessions</th></tr></thead><tbody>${weekRows}</tbody></table></body></html>`
                 const w = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1200')
                 if (!w) return
@@ -499,7 +740,7 @@ export default function MyActivity() {
                 w.document.close()
                 w.focus()
                 w.print()
-              } catch { }
+              } catch {}
             }}
           >
             Download PDF document
@@ -509,24 +750,43 @@ export default function MyActivity() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="rounded-xl shadow-sm border border-slate-200 bg-white p-6">
           <div className="text-sm text-slate-500">Total Books Read</div>
-          <div className="mt-2 text-3xl font-bold text-slate-900">{loading ? '—' : totalFinished}</div>
-          <div className={`mt-1 text-xs font-medium ${loading ? '' : (monthDelta >= 1 ? 'text-emerald-600' : 'text-red-400')}`}>{loading ? '' : `+${monthDelta} from this month`}</div>
+          <div className="mt-2 text-3xl font-bold text-slate-900">
+            {loading ? '—' : totalFinished}
+          </div>
+          <div
+            className={`mt-1 text-xs font-medium ${loading ? '' : monthDelta >= 1 ? 'text-emerald-600' : 'text-red-400'}`}
+          >
+            {loading ? '' : `+${monthDelta} from this month`}
+          </div>
         </div>
         <div className="rounded-xl shadow-sm border border-slate-200 bg-white p-6">
           <div className="text-sm text-slate-500">Total Hours Read</div>
           <div className="mt-2 text-3xl font-bold text-slate-900">{loading ? '—' : totalHM}</div>
-          <div className={`mt-1 text-xs font-medium ${loading ? '' : (Math.floor(weekMinutes / 60) >= 1 ? 'text-emerald-600' : 'text-red-400')}`}>{loading ? '' : `+${weekDeltaLabel}`}</div>
+          <div
+            className={`mt-1 text-xs font-medium ${loading ? '' : Math.floor(weekMinutes / 60) >= 1 ? 'text-emerald-600' : 'text-red-400'}`}
+          >
+            {loading ? '' : `+${weekDeltaLabel}`}
+          </div>
         </div>
         <div className="rounded-xl shadow-sm border border-slate-200 bg-white p-6">
           <div className="text-sm text-slate-500">Current Streak</div>
-          <div className="mt-2 text-3xl font-bold text-slate-900">{loading ? '—' : `${streak} days`}</div>
-          <div className="mt-1 text-xs font-medium text-slate-400">{loading ? '' : 'Keep going'}</div>
+          <div className="mt-2 text-3xl font-bold text-slate-900">
+            {loading ? '—' : `${streak} days`}
+          </div>
+          <div className="mt-1 text-xs font-medium text-slate-400">
+            {loading ? '' : 'Keep going'}
+          </div>
         </div>
         <div className="rounded-xl shadow-sm border border-slate-200 bg-white p-6 relative">
           <div className="text-sm text-slate-500">Reading Goal Progress</div>
-          <div className="mt-2 text-3xl font-bold text-slate-900">{loading ? '—' : `${goalCompleted}/${goalTarget || 0} ${goalUnitLabel}`}</div>
-          <div className={`mt-1 text-xs font-medium ${loading ? '' : (goalPercent >= 1 ? 'text-emerald-600' : 'text-red-400')}`}>{loading ? '' : `${goalPercent}% completed`}</div>
-
+          <div className="mt-2 text-3xl font-bold text-slate-900">
+            {loading ? '—' : `${goalCompleted}/${goalTarget || 0} ${goalUnitLabel}`}
+          </div>
+          <div
+            className={`mt-1 text-xs font-medium ${loading ? '' : goalPercent >= 1 ? 'text-emerald-600' : 'text-red-400'}`}
+          >
+            {loading ? '' : `${goalPercent}% completed`}
+          </div>
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-8">
@@ -546,15 +806,19 @@ export default function MyActivity() {
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={(d: Date | undefined) => { setSelectedDate(d); }}
+                onSelect={(d: Date | undefined) => {
+                  setSelectedDate(d)
+                }}
                 className="w-full rounded-md border shadow-sm"
                 modifiers={{ activity: activityDates }}
                 classNames={{
-                  day: "rdp-day_activity:bg-cyan-50 rdp-day_activity:text-cyan-900 rdp-day_activity:after:content-[''] rdp-day_activity:after:w-1.5 rdp-day_activity:after:h-1.5 rdp-day_activity:after:bg-cyan-600 rdp-day_activity:after:rounded-full rdp-day_activity:after:absolute rdp-day_activity:after:bottom-1 rdp-day_activity:after:left-1/2 rdp-day_activity:after:-translate-x-1/2"
+                  day: "rdp-day_activity:bg-cyan-50 rdp-day_activity:text-cyan-900 rdp-day_activity:after:content-[''] rdp-day_activity:after:w-1.5 rdp-day_activity:after:h-1.5 rdp-day_activity:after:bg-cyan-600 rdp-day_activity:after:rounded-full rdp-day_activity:after:absolute rdp-day_activity:after:bottom-1 rdp-day_activity:after:left-1/2 rdp-day_activity:after:-translate-x-1/2",
                 }}
               />
             </div>
-            <div className="mt-4 text-sm text-slate-600">{summaryText || 'Select a date to see activity summary.'}</div>
+            <div className="mt-4 text-sm text-slate-600">
+              {summaryText || 'Select a date to see activity summary.'}
+            </div>
           </div>
         </div>
       </div>
