@@ -164,7 +164,9 @@ export default function AccountMain({ onNavigate }: AccountMainProps) {
           activeHref={section === 'profile' ? '#' : section}
         />
 
-        <div className={`transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'xl:pl-24' : 'xl:pl-72'}`}>
+        <div
+          className={`transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'xl:pl-24' : 'xl:pl-72'}`}
+        >
           <main>
             <h1 className="sr-only">Account Settings</h1>
             {section !== 'profile' && (

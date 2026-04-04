@@ -12,6 +12,8 @@ import { auth } from '../../firebaseConfig'
 import Logo from '../../assets/logo/e-book-nook.svg'
 import SignUp from './SingUp'
 import { XMarkIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { motion } from 'framer-motion'
+import { transitions } from '../../lib/animations'
 
 export default function SignIn({
   onClose,
@@ -328,12 +330,15 @@ export default function SignIn({
               </div>
 
               <div>
-                <button
+                <motion.button
                   type="submit"
-                  className="rounded-xl shadow-lg bg-cyan-700/80 px-3 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-cyan-600/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-all duration-200 transform hover:scale-105 w-full"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={transitions.spring}
+                  className="rounded-xl shadow-lg bg-cyan-700/80 px-3 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-cyan-600/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 w-full"
                 >
                   Login
-                </button>
+                </motion.button>
               </div>
             </form>
 

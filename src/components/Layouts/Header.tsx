@@ -9,6 +9,8 @@ import SignUp from '../Auth/SingUp'
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth'
 import { auth } from '../../firebaseConfig'
 import UserPanel from '../Auth/UserPanel'
+import { motion, AnimatePresence } from 'framer-motion'
+import { transitions, drawerVariants, overlayVariants, modalVariants } from '../../lib/animations'
 // useLocation မလိုတော့ပါ
 
 interface HeaderProps {
@@ -114,12 +116,14 @@ export default function Header({ onNavigate }: HeaderProps) {
         className="relative mx-auto flex max-w-7xl items-center justify-between p-6 px-2 sm:px-6 lg:px-8"
       >
         <div className="flex items-center gap-x-3">
-          <button
+          <motion.button
             type="button"
             onClick={() => {
               onNavigate?.('home')
             }}
             className="-m-1.5 p-1.5"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             <span className="sr-only">E-Book Nook</span>
             <img
@@ -127,9 +131,16 @@ export default function Header({ onNavigate }: HeaderProps) {
               src={isSticky ? StickyLogo : Logo}
               className="h-12 w-auto"
             />
-          </button>
+          </motion.button>
           {!isSticky && (
-            <span className={`text-xl font-bold ${textZoomGradientClass}`}>E-Book Nook</span>
+            <motion.span
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={transitions.spring}
+              className={`text-xl font-bold ${textZoomGradientClass}`}
+            >
+              E-Book Nook
+            </motion.span>
           )}
         </div>
 
@@ -137,17 +148,18 @@ export default function Header({ onNavigate }: HeaderProps) {
         {isSticky && (
           <div className="hidden lg:flex lg:gap-x-12 absolute left-1/2 -translate-x-1/2">
             {navigation.map((item) => (
-              <button
+              <motion.button
                 key={item.slug}
                 type="button"
                 onClick={() => {
                   onNavigate?.(item.slug)
                 }}
-                // Active Color Logic ဖြုတ်လိုက်ပါပြီ။ Hover effect ပဲ ထားပါတော့တယ်။
                 className="text-base font-semibold text-cyan-600 hover:text-cyan-500 transition-colors"
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 0 }}
               >
                 {item.name}
-              </button>
+              </motion.button>
             ))}
           </div>
         )}
@@ -157,17 +169,18 @@ export default function Header({ onNavigate }: HeaderProps) {
           <div className="flex items-center gap-x-12">
             {!isSticky &&
               navigation.map((item) => (
-                <button
+                <motion.button
                   key={item.slug}
                   type="button"
                   onClick={() => {
                     onNavigate?.(item.slug)
                   }}
-                  // Active Color Logic ဖြုတ်လိုက်ပါပြီ။
                   className="text-base font-semibold text-cyan-800/80 hover:text-cyan-600 transition-colors"
+                  whileHover={{ y: -2 }}
+                  whileTap={{ y: 0 }}
                 >
                   {item.name}
-                </button>
+                </motion.button>
               ))}
 
             <UserPanel
@@ -186,86 +199,140 @@ export default function Header({ onNavigate }: HeaderProps) {
             onNavigate={onNavigate}
             onSignOut={handleSignOut}
           />
-          <button
+          <motion.button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
             className="inline-flex items-center justify-center p-2.5 text-gray-700"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
           >
             <span className="sr-only">Open main menu</span>
             <Bars3Icon aria-hidden="true" className="size-10" />
-          </button>
+          </motion.button>
         </div>
       </nav>
 
       {/* Mobile Menu */}
       <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
-        <div className="fixed inset-0 z-50" />
-        <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-gradient-to-b from-cyan-50 to-sky-100 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
-          <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => {
-                onNavigate?.('home')
-                setMobileMenuOpen(false)
-              }}
-              className="-m-1.5 p-1.5"
-            >
-              <span className="sr-only">E-Book Nook</span>
-              <img
-                alt="E-Book Nook Logo"
-                src={isSticky ? StickyLogo : Logo}
-                className="h-12 w-auto"
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <>
+              <motion.div
+                variants={overlayVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={transitions.quick}
+                className="fixed inset-0 z-50 bg-black/20"
               />
-            </button>
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(false)}
-              className="-m-2.5 rounded-xl shadow-lg p-2.5 text-gray-700"
-            >
-              <span className="sr-only">Close menu</span>
-              <XMarkIcon aria-hidden="true" className="size-8" />
-            </button>
-          </div>
-          <div className="mt-6 flow-root">
-            <div className="-my-6">
-              <div className="space-y-2 py-6">
-                {navigation.map((item) => (
-                  <button
-                    key={item.slug}
-                    type="button"
-                    onClick={() => {
-                      onNavigate?.(item.slug)
-                      setMobileMenuOpen(false)
-                    }}
-                    className="-mx-3 block rounded-xl px-3 py-2 text-base sm:text-lg font-semibold sm:font-semibold w-full text-left text-cyan-600 hover:text-cyan-500 hover:bg-white/40"
-                  >
-                    {item.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </DialogPanel>
+              <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-gradient-to-b from-cyan-50 to-sky-100 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
+                <motion.div
+                  variants={drawerVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={transitions.spring}
+                  className="h-full"
+                >
+                  <div className="flex items-center justify-between">
+                    <motion.button
+                      type="button"
+                      onClick={() => {
+                        onNavigate?.('home')
+                        setMobileMenuOpen(false)
+                      }}
+                      className="-m-1.5 p-1.5"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <span className="sr-only">E-Book Nook</span>
+                      <img
+                        alt="E-Book Nook Logo"
+                        src={isSticky ? StickyLogo : Logo}
+                        className="h-12 w-auto"
+                      />
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="-m-2.5 rounded-xl shadow-lg p-2.5 text-gray-700"
+                      whileHover={{ scale: 1.1, rotate: 90 }}
+                      whileTap={{ scale: 0.9 }}
+                      transition={transitions.spring}
+                    >
+                      <span className="sr-only">Close menu</span>
+                      <XMarkIcon aria-hidden="true" className="size-8" />
+                    </motion.button>
+                  </div>
+                  <div className="mt-6 flow-root">
+                    <div className="-my-6">
+                      <div className="space-y-2 py-6">
+                        {navigation.map((item, index) => (
+                          <motion.button
+                            key={item.slug}
+                            type="button"
+                            onClick={() => {
+                              onNavigate?.(item.slug)
+                              setMobileMenuOpen(false)
+                            }}
+                            initial={{ opacity: 0, x: 50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ ...transitions.spring, delay: index * 0.1 }}
+                            whileHover={{ x: 8, backgroundColor: 'rgba(255,255,255,0.4)' }}
+                            className="-mx-3 block rounded-xl px-3 py-2 text-base sm:text-lg font-semibold sm:font-semibold w-full text-left text-cyan-600 hover:text-cyan-500"
+                          >
+                            {item.name}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </DialogPanel>
+            </>
+          )}
+        </AnimatePresence>
       </Dialog>
 
       {/* Auth Modal */}
       <Dialog open={authOpen} onClose={setAuthOpen} className="relative z-50">
-        <div className="fixed inset-0 bg-black/20" />
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <DialogPanel className="w-full max-w-md rounded-xl bg-white shadow-lg">
-              {authMode === 'signin' ? (
-                <SignIn onClose={() => setAuthOpen(false)} onNavigate={onNavigate} />
-              ) : (
-                <SignUp
-                  onBackToSignIn={() => setAuthMode('signin')}
-                  onClose={() => setAuthOpen(false)}
-                  onNavigate={onNavigate}
-                />
-              )}
-            </DialogPanel>
-          </div>
-        </div>
+        <AnimatePresence>
+          {authOpen && (
+            <>
+              <motion.div
+                variants={overlayVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={transitions.quick}
+                className="fixed inset-0 bg-black/20"
+              />
+              <div className="fixed inset-0 overflow-y-auto">
+                <div className="flex min-h-full items-center justify-center p-4">
+                  <DialogPanel className="w-full max-w-md rounded-xl bg-white shadow-lg">
+                    <motion.div
+                      variants={modalVariants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      transition={transitions.spring}
+                    >
+                      {authMode === 'signin' ? (
+                        <SignIn onClose={() => setAuthOpen(false)} onNavigate={onNavigate} />
+                      ) : (
+                        <SignUp
+                          onBackToSignIn={() => setAuthMode('signin')}
+                          onClose={() => setAuthOpen(false)}
+                          onNavigate={onNavigate}
+                        />
+                      )}
+                    </motion.div>
+                  </DialogPanel>
+                </div>
+              </div>
+            </>
+          )}
+        </AnimatePresence>
       </Dialog>
     </header>
   )

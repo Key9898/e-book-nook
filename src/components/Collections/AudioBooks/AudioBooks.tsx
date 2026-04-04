@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Dialog,
   DialogBackdrop,
@@ -33,6 +34,13 @@ import { LuFileAudio } from 'react-icons/lu'
 import AudioPlayer from '../Features/AudioPlayer'
 import { db } from '../../../firebaseConfig'
 import { onSnapshot, collection } from 'firebase/firestore'
+import {
+  variants,
+  transitions,
+  hoverScale,
+  hoverLift,
+  modalVariants,
+} from '../../../lib/animations'
 
 const sortOptions = [
   { name: 'Best Rating', href: '#', current: true },
@@ -439,9 +447,15 @@ export default function Audiobooks({ onNavigate }: AudiobooksProps) {
               <div className="lg:col-span-3 rounded-xl shadow-xl ring-1 ring-black/5 bg-white p-4">
                 {viewMode === 'grid' ? (
                   <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
-                    {pagedBooks.map((b) => (
-                      <div
+                    {pagedBooks.map((b, index) => (
+                      <motion.div
                         key={b.id}
+                        initial="initial"
+                        whileInView="animate"
+                        viewport={{ once: true, margin: '-50px' }}
+                        variants={variants.fadeInUp}
+                        transition={{ ...transitions.spring, delay: index * 0.05 }}
+                        {...hoverLift}
                         className="relative rounded-xl ring-1 ring-black/5 bg-white shadow-sm overflow-hidden flex flex-col h-full"
                       >
                         <div className="relative h-40 w-full">
@@ -472,7 +486,7 @@ export default function Audiobooks({ onNavigate }: AudiobooksProps) {
                               </span>
                             </div>
                           )}
-                          <button
+                          <motion.button
                             type="button"
                             aria-label="Listen"
                             title="Listen"
@@ -485,12 +499,13 @@ export default function Audiobooks({ onNavigate }: AudiobooksProps) {
                               })
                             }
                             disabled={!b.audioUrl}
+                            {...hoverScale}
                             className="pt-2 mt-auto inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed bg-cyan-700 hover:bg-cyan-600"
                           >
                             Listen Now
-                          </button>
+                          </motion.button>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                     {pagedBooks.length === 0 && (
                       <div className="col-span-full text-center text-gray-500">No books found</div>
@@ -498,9 +513,15 @@ export default function Audiobooks({ onNavigate }: AudiobooksProps) {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {pagedBooks.map((b) => (
-                      <div
+                    {pagedBooks.map((b, index) => (
+                      <motion.div
                         key={b.id}
+                        initial="initial"
+                        whileInView="animate"
+                        viewport={{ once: true, margin: '-50px' }}
+                        variants={variants.fadeInLeft}
+                        transition={{ ...transitions.spring, delay: index * 0.05 }}
+                        {...hoverLift}
                         className="relative rounded-xl ring-1 ring-black/5 bg-white shadow-sm overflow-hidden flex h-full"
                       >
                         <div className="relative h-28 w-28 shrink-0">
@@ -531,7 +552,7 @@ export default function Audiobooks({ onNavigate }: AudiobooksProps) {
                               </span>
                             </div>
                           )}
-                          <button
+                          <motion.button
                             type="button"
                             aria-label="Listen"
                             title="Listen"
@@ -543,12 +564,13 @@ export default function Audiobooks({ onNavigate }: AudiobooksProps) {
                                 audioUrl: b.audioUrl,
                               })
                             }
+                            {...hoverScale}
                             className="pt-2 mt-auto inline-flex items-center justify-center rounded-xl bg-cyan-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-cyan-600"
                           >
                             Listen Now
-                          </button>
+                          </motion.button>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                     {pagedBooks.length === 0 && (
                       <div className="text-center text-gray-500">No books found</div>
@@ -567,26 +589,35 @@ export default function Audiobooks({ onNavigate }: AudiobooksProps) {
               />
             </div>
           </section>
-          {activeAudio && (
-            <div className="fixed inset-0 z-[60] bg-white">
-              <button
-                type="button"
-                aria-label="Close listening room"
-                title="Close listening room"
-                onClick={() => setActiveAudio(null)}
-                className="absolute top-4 left-4 z-[70] rounded-xl bg-cyan-700 px-3 py-1.5 text-sm font-semibold text-white shadow-lg hover:bg-cyan-600"
+          <AnimatePresence>
+            {activeAudio && (
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={modalVariants}
+                className="fixed inset-0 z-[60] bg-white"
               >
-                Back
-              </button>
-              <AudioPlayer
-                bookId={activeAudio.id}
-                audioUrl={activeAudio.audioUrl}
-                title={activeAudio.title}
-                coverUrl={activeAudio.cover}
-                onClose={() => setActiveAudio(null)}
-              />
-            </div>
-          )}
+                <motion.button
+                  type="button"
+                  aria-label="Close listening room"
+                  title="Close listening room"
+                  onClick={() => setActiveAudio(null)}
+                  {...hoverScale}
+                  className="absolute top-4 left-4 z-[70] rounded-xl bg-cyan-700 px-3 py-1.5 text-sm font-semibold text-white shadow-lg hover:bg-cyan-600"
+                >
+                  Back
+                </motion.button>
+                <AudioPlayer
+                  bookId={activeAudio.id}
+                  audioUrl={activeAudio.audioUrl}
+                  title={activeAudio.title}
+                  coverUrl={activeAudio.cover}
+                  onClose={() => setActiveAudio(null)}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </main>
       </div>
       <ScrollToTopButton />

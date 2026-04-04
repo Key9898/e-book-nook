@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import Header from '../Layouts/Header'
 import Footer from '../Layouts/Footer'
 import ScrollToTopButton from '../Layouts/ScrollUpToTopButton'
@@ -7,6 +8,7 @@ import { MdFavoriteBorder, MdOutlineDarkMode } from 'react-icons/md'
 import { FaEdit, FaHistory } from 'react-icons/fa'
 import { FaFilePdf } from 'react-icons/fa6'
 import { LuFileAudio } from 'react-icons/lu'
+import { variants, transitions, hoverScale } from '../../lib/animations'
 
 const features = [
   {
@@ -59,44 +61,78 @@ export default function Collections({ onNavigate }: CollectionsProps) {
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-8">
           <div className="mx-auto grid max-w-2xl grid-cols-1 gap-16 sm:mx-0 sm:gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-5">
             <div className="col-span-2">
-              <h2 className="text-4xl font-semibold tracking-tight text-pretty text-cyan-700/90 sm:text-5xl">
+              <motion.h2
+                initial="initial"
+                whileInView="animate"
+                viewport={{ once: true, margin: '-100px' }}
+                variants={variants.fadeInUp}
+                transition={transitions.spring}
+                className="text-4xl font-semibold tracking-tight text-pretty text-cyan-700/90 sm:text-5xl"
+              >
                 Built for Readers, Tailored for You
-              </h2>
-              <p className="mt-6 text-lg text-pretty text-gray-600">
+              </motion.h2>
+              <motion.p
+                initial="initial"
+                whileInView="animate"
+                viewport={{ once: true, margin: '-100px' }}
+                variants={variants.fadeIn}
+                transition={{ ...transitions.spring, delay: 0.1 }}
+                className="mt-6 text-lg text-pretty text-gray-600"
+              >
                 E-Book Nook is more than just a library. It's a space designed with powerful tools
                 to help you track your progress, capture ideas, and read comfortably. See what makes
                 your nook special.
-              </p>
-              <div className="mt-6 flex flex-wrap items-center gap-4">
-                <button
+              </motion.p>
+              <motion.div
+                initial="initial"
+                whileInView="animate"
+                viewport={{ once: true, margin: '-100px' }}
+                variants={variants.fadeIn}
+                transition={{ ...transitions.spring, delay: 0.2 }}
+                className="mt-6 flex flex-wrap items-center gap-4"
+              >
+                <motion.button
                   type="button"
                   onClick={() => onNavigate?.('pdfBooks')}
+                  {...hoverScale}
                   className="inline-flex items-center gap-2 rounded-xl bg-cyan-700 px-5 py-3 text-sm font-semibold text-white shadow-lg hover:bg-cyan-600"
                 >
                   <FaFilePdf aria-hidden className="size-5" />
                   PDF Books
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   type="button"
                   onClick={() => onNavigate?.('audiobooks')}
+                  {...hoverScale}
                   className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-lg hover:bg-cyan-700"
                 >
                   <LuFileAudio aria-hidden className="size-5" />
                   Audiobooks
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             </div>
             <dl className="col-span-3 grid grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2">
-              {features.map((feature) => (
-                <div key={feature.name}>
+              {features.map((feature, index) => (
+                <motion.div
+                  key={feature.name}
+                  initial="initial"
+                  whileInView="animate"
+                  viewport={{ once: true, margin: '-50px' }}
+                  variants={variants.fadeInUp}
+                  transition={{ ...transitions.spring, delay: index * 0.1 }}
+                >
                   <dt className="text-lg font-semibold text-cyan-800/80">
-                    <div className="mb-6 flex size-14 items-center justify-center rounded-xl bg-cyan-600">
+                    <motion.div
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={transitions.quick}
+                      className="mb-6 flex size-14 items-center justify-center rounded-xl bg-cyan-600"
+                    >
                       <feature.icon aria-hidden="true" className="size-10 text-white" />
-                    </div>
+                    </motion.div>
                     {feature.name}
                   </dt>
                   <dd className="mt-1 text-base text-gray-600">{feature.description}</dd>
-                </div>
+                </motion.div>
               ))}
             </dl>
           </div>

@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo, useRef } from 'react'
 import { MdFavoriteBorder, MdOutlineDarkMode, MdOutlineLightMode } from 'react-icons/md'
 import { FaEdit, FaHistory, FaRegBookmark } from 'react-icons/fa'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
+import { motion } from 'framer-motion'
+import { transitions } from '../../../lib/animations'
 import {
   getFirestore,
   doc,
@@ -82,10 +84,7 @@ export default function AudioPlayer({
         try {
           const raw = localStorage.getItem('recentlyViewed')
           const list: RecentlyViewedItem[] = raw ? JSON.parse(raw) : []
-          const next = [
-            { id: bookId, title, coverUrl, ts },
-            ...list.filter((i) => i.id !== bookId),
-          ]
+          const next = [{ id: bookId, title, coverUrl, ts }, ...list.filter((i) => i.id !== bookId)]
           localStorage.setItem('recentlyViewed', JSON.stringify(next.slice(0, 20)))
         } catch {
           // Failed to save to localStorage fallback
@@ -95,10 +94,7 @@ export default function AudioPlayer({
       try {
         const raw = localStorage.getItem('recentlyViewed')
         const list: RecentlyViewedItem[] = raw ? JSON.parse(raw) : []
-        const next = [
-          { id: bookId, title, coverUrl, ts },
-          ...list.filter((i) => i.id !== bookId),
-        ]
+        const next = [{ id: bookId, title, coverUrl, ts }, ...list.filter((i) => i.id !== bookId)]
         localStorage.setItem('recentlyViewed', JSON.stringify(next.slice(0, 20)))
       } catch {
         // Failed to save to localStorage
@@ -289,61 +285,82 @@ export default function AudioPlayer({
     <div className="fixed inset-0 z-[2000] h-screen w-screen bg-gray-50 dark:bg-gray-800 flex flex-col items-center justify-center overflow-hidden">
       {/* Back Button */}
       <div className="absolute left-4 z-50 top-4 sm:top-6 lg:top-8">
-        <button
+        <motion.button
           type="button"
           aria-label="Back"
           title="Back"
           onClick={handleBack}
-          className="p-2 sm:p-3 bg-white dark:bg-slate-700 rounded-full shadow hover:scale-105 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={transitions.spring}
+          className="p-2 sm:p-3 bg-white dark:bg-slate-700 rounded-full shadow min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
           <span className="sr-only">Back</span>
-          <ChevronLeftIcon aria-hidden className="size-5 sm:size-6 text-slate-700 dark:text-white" />
-        </button>
+          <ChevronLeftIcon
+            aria-hidden
+            className="size-5 sm:size-6 text-slate-700 dark:text-white"
+          />
+        </motion.button>
       </div>
 
       {/* Feature Icons Bar (Right Side) */}
       <div className="w-full mb-4 flex flex-row justify-center gap-3 lg:absolute lg:top-8 lg:right-4 lg:w-auto lg:mb-0 lg:flex-col">
         {/* Add to Favorite (Heart) */}
-        <button
+        <motion.button
           type="button"
           onClick={addFavorite}
-          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={transitions.spring}
+          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
           title="Add to Favorites"
         >
           <MdFavoriteBorder className="size-5 sm:size-6 text-rose-500" />
-        </button>
+        </motion.button>
         {/* Open Favorites Drawer (Bookmark List) */}
-        <button
+        <motion.button
           type="button"
           onClick={() => setOpenFav(true)}
-          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={transitions.spring}
+          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
           title="My List"
         >
           <FaRegBookmark className="size-5 text-cyan-600 dark:text-cyan-400" />
-        </button>
+        </motion.button>
         {/* Toggle Notes */}
-        <button
+        <motion.button
           type="button"
           onClick={() => setOpenNotes(!openNotes)}
-          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={transitions.spring}
+          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
           title="My Notes"
         >
           <FaEdit className="size-5 text-yellow-500" />
-        </button>
+        </motion.button>
         {/* Recently Viewed */}
-        <button
+        <motion.button
           type="button"
           onClick={() => setOpenRecent(true)}
-          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={transitions.spring}
+          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
           title="History"
         >
           <FaHistory className="size-5 text-purple-500" />
-        </button>
+        </motion.button>
         {/* Dark Mode Toggle */}
-        <button
+        <motion.button
           type="button"
           onClick={toggle}
-          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={transitions.spring}
+          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
           title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
           {isDark ? (
@@ -351,7 +368,7 @@ export default function AudioPlayer({
           ) : (
             <MdOutlineDarkMode className="size-6 text-slate-800" />
           )}
-        </button>
+        </motion.button>
       </div>
 
       {/* Main Player Card */}

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowUpIcon } from '@heroicons/react/24/solid'
+import { motion } from 'framer-motion'
+import { transitions } from '../../lib/animations'
 
 export default function ScrollToTopButton() {
   const [isVisible, setIsVisible] = useState(false)
@@ -22,15 +24,18 @@ export default function ScrollToTopButton() {
   }
 
   return (
-    <button
+    <motion.button
       type="button"
       onClick={scrollToTop}
-      className={`fixed bottom-16 right-6 sm:bottom-10 sm:right-10 lg:bottom-6 lg:right-6 z-[60] w-12 h-12 sm:w-14 sm:h-14 rounded-xl shadow-lg bg-cyan-700 backdrop-blur-lg border border-white/20 flex items-center justify-center text-white hover:scale-110 hover:shadow-xl hover:bg-cyan-600 transition-all duration-200 transform ${
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      transition={transitions.spring}
+      className={`fixed bottom-16 right-6 sm:bottom-10 sm:right-10 lg:bottom-6 lg:right-6 z-[60] w-12 h-12 sm:w-14 sm:h-14 rounded-xl shadow-lg bg-cyan-700 backdrop-blur-lg border border-white/20 flex items-center justify-center text-white hover:shadow-xl hover:bg-cyan-600 ${
         isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       aria-label="Scroll to top"
     >
       <ArrowUpIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-    </button>
+    </motion.button>
   )
 }

@@ -4,6 +4,8 @@ import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
 import Logo from '../../assets/logo/e-book-nook.svg'
 import { XMarkIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import { auth, db } from '../../firebaseConfig'
+import { motion } from 'framer-motion'
+import { transitions } from '../../lib/animations'
 
 interface SignUpProps {
   onBackToSignIn?: () => void
@@ -263,12 +265,15 @@ export default function SignUp({ onBackToSignIn, onClose, onNavigate }: SignUpPr
               </div>
 
               <div>
-                <button
+                <motion.button
                   type="submit"
-                  className="rounded-xl shadow-lg bg-cyan-700/80 px-3 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-cyan-600/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 transition-all duration-200 transform hover:scale-105 w-full"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={transitions.spring}
+                  className="rounded-xl shadow-lg bg-cyan-700/80 px-3 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-cyan-600/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 w-full"
                 >
                   Continue
-                </button>
+                </motion.button>
               </div>
             </form>
           </div>

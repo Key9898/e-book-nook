@@ -20,47 +20,50 @@ export default function FavoritesList({ open, onClose }: FavoritesListProps) {
   const [items, setItems] = useState<FavoriteItem[]>([])
   const [user, setUser] = useState<User | null>(null)
 
-  const refresh = useCallback(async (currentUser?: User | null) => {
-    const u = currentUser || user || auth?.currentUser
-    const uid = u?.uid || localStorage.getItem('auth_user')
+  const refresh = useCallback(
+    async (currentUser?: User | null) => {
+      const u = currentUser || user || auth?.currentUser
+      const uid = u?.uid || localStorage.getItem('auth_user')
 
-    if (uid) {
-      try {
-        const db = getFirestore()
-        const snap = await getDocs(collection(db, 'users', uid, 'favorites'))
-        const remote: FavoriteItem[] = snap.docs.map((d) => ({
-          id: d.id,
-          title: d.data().title,
-          coverUrl: d.data().coverUrl,
-        }))
-        let local: FavoriteItem[] = []
+      if (uid) {
         try {
-          const raw = localStorage.getItem('favorites')
-          local = raw ? JSON.parse(raw) : []
+          const db = getFirestore()
+          const snap = await getDocs(collection(db, 'users', uid, 'favorites'))
+          const remote: FavoriteItem[] = snap.docs.map((d) => ({
+            id: d.id,
+            title: d.data().title,
+            coverUrl: d.data().coverUrl,
+          }))
+          let local: FavoriteItem[] = []
+          try {
+            const raw = localStorage.getItem('favorites')
+            local = raw ? JSON.parse(raw) : []
+          } catch {
+            // Failed to parse localStorage favorites
+          }
+          const mergedMap = new Map<string, FavoriteItem>()
+          for (const i of [...local, ...remote]) mergedMap.set(i.id, i)
+          setItems(Array.from(mergedMap.values()))
         } catch {
-          // Failed to parse localStorage favorites
+          // Failed to fetch from Firestore, falling back to localStorage
+          try {
+            const raw = localStorage.getItem('favorites')
+            setItems(raw ? JSON.parse(raw) : [])
+          } catch {
+            setItems([])
+          }
         }
-        const mergedMap = new Map<string, FavoriteItem>()
-        for (const i of [...local, ...remote]) mergedMap.set(i.id, i)
-        setItems(Array.from(mergedMap.values()))
-      } catch {
-        // Failed to fetch from Firestore, falling back to localStorage
-        try {
-          const raw = localStorage.getItem('favorites')
-          setItems(raw ? JSON.parse(raw) : [])
-        } catch {
-          setItems([])
-        }
+        return
       }
-      return
-    }
-    try {
-      const raw = localStorage.getItem('favorites')
-      setItems(raw ? JSON.parse(raw) : [])
-    } catch {
-      setItems([])
-    }
-  }, [user])
+      try {
+        const raw = localStorage.getItem('favorites')
+        setItems(raw ? JSON.parse(raw) : [])
+      } catch {
+        setItems([])
+      }
+    },
+    [user]
+  )
 
   useEffect(() => {
     if (!auth) return

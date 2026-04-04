@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (2026-04-05 - TypeScript & Framer Motion Type Errors)
+
+- **animations.tsx** - Fixed `ease` array type errors by importing `Easing` type from framer-motion and casting arrays as `Easing` instead of `as const`
+- **PdfBooks.tsx** - Fixed duplicate `transition` prop warning by reordering `{...hoverLift}` spread before explicit `transition` prop
+- **BooksDrawer.tsx** - Fixed HTML structure error by replacing `<ul>/<motion.li>` with `<div>/<motion.div>` (linter didn't recognize `motion.li` as valid `<li>` element)
+- **animations.ts** - Deleted old file (was replaced by animations.tsx in previous session)
+
+### Changed (2026-04-05 - CSS to Framer Motion Conversion)
+
+- **ScrollUpToTopButton.tsx** - Converted CSS transitions to Framer Motion animations
+- **SingIn.tsx** - Converted CSS transitions to Framer Motion animations
+- **SingUp.tsx** - Converted CSS transitions to Framer Motion animations
+- **animations.tsx** - Created new centralized animations file with reusable transitions, variants, and motion components
+
 ### Fixed (2026-04-04 - Firebase App Check 403 Error)
 
 - **firebaseConfig.ts** - Disabled App Check in development mode to prevent 403 Forbidden errors from debug token exchange

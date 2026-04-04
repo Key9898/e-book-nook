@@ -32,46 +32,52 @@ export default function RecentlyViewed({ open, onClose }: RecentlyViewedProps) {
   const [items, setItems] = useState<ViewedItem[]>([])
   const [user, setUser] = useState<User | null>(null)
 
-  const refresh = useCallback(async (currentUser?: User | null) => {
-    const u = currentUser || user || auth?.currentUser
-    const uid = u?.uid || localStorage.getItem('auth_user')
+  const refresh = useCallback(
+    async (currentUser?: User | null) => {
+      const u = currentUser || user || auth?.currentUser
+      const uid = u?.uid || localStorage.getItem('auth_user')
 
-    if (uid) {
-      try {
-        const db = getFirestore()
-        const snap = await getDocs(collection(db, 'users', uid, 'recentlyViewed'))
-        const remote: ViewedItem[] = snap.docs.map((d) => ({ id: d.id, ...(d.data() as ViewedItemDoc) }))
-        let local: ViewedItem[] = []
+      if (uid) {
         try {
-          const raw = localStorage.getItem('recentlyViewed')
-          local = raw ? JSON.parse(raw) : []
+          const db = getFirestore()
+          const snap = await getDocs(collection(db, 'users', uid, 'recentlyViewed'))
+          const remote: ViewedItem[] = snap.docs.map((d) => ({
+            id: d.id,
+            ...(d.data() as ViewedItemDoc),
+          }))
+          let local: ViewedItem[] = []
+          try {
+            const raw = localStorage.getItem('recentlyViewed')
+            local = raw ? JSON.parse(raw) : []
+          } catch {
+            // Local storage read failed
+          }
+          const mergedMap = new Map<string, ViewedItem>()
+          for (const i of [...local, ...remote]) mergedMap.set(i.id, i)
+          const merged = Array.from(mergedMap.values()).sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0))
+          setItems(merged)
         } catch {
-          // Local storage read failed
+          // Firestore read failed, fallback to local
+          try {
+            const raw = localStorage.getItem('recentlyViewed')
+            const list: ViewedItem[] = raw ? JSON.parse(raw) : []
+            setItems(list.sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0)))
+          } catch {
+            setItems([])
+          }
         }
-        const mergedMap = new Map<string, ViewedItem>()
-        for (const i of [...local, ...remote]) mergedMap.set(i.id, i)
-        const merged = Array.from(mergedMap.values()).sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0))
-        setItems(merged)
-      } catch {
-        // Firestore read failed, fallback to local
-        try {
-          const raw = localStorage.getItem('recentlyViewed')
-          const list: ViewedItem[] = raw ? JSON.parse(raw) : []
-          setItems(list.sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0)))
-        } catch {
-          setItems([])
-        }
+        return
       }
-      return
-    }
-    try {
-      const raw = localStorage.getItem('recentlyViewed')
-      const list: ViewedItem[] = raw ? JSON.parse(raw) : []
-      setItems(list.sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0)))
-    } catch {
-      setItems([])
-    }
-  }, [user])
+      try {
+        const raw = localStorage.getItem('recentlyViewed')
+        const list: ViewedItem[] = raw ? JSON.parse(raw) : []
+        setItems(list.sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0)))
+      } catch {
+        setItems([])
+      }
+    },
+    [user]
+  )
 
   useEffect(() => {
     if (!auth) return

@@ -243,7 +243,9 @@ export default function MyActivity() {
         try {
           const actSnap = await getDocs(collection(db, 'users', uid, 'appActivity'))
           activityTs.push(
-            ...actSnap.docs.map((d) => Number((d.data() as AppActivityDoc)?.ts || 0)).filter((x) => x > 0)
+            ...actSnap.docs
+              .map((d) => Number((d.data() as AppActivityDoc)?.ts || 0))
+              .filter((x) => x > 0)
           )
         } catch {
           // Failed to fetch app activity

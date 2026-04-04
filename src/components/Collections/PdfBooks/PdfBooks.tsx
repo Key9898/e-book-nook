@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Dialog,
   DialogBackdrop,
@@ -32,6 +33,13 @@ import PdfPagination from './PdfPagination'
 import PdfFiltersSidebar, { defaultFilters } from './PdfFiltersSidebar'
 import { FaFilePdf } from 'react-icons/fa6'
 import PdfReader from '../Features/PdfReader'
+import {
+  variants,
+  transitions,
+  hoverScale,
+  hoverLift,
+  modalVariants,
+} from '../../../lib/animations'
 
 const sortOptions = [
   { name: 'Best Rating', href: '#', current: true },
@@ -435,9 +443,15 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
               <div className="lg:col-span-3 rounded-xl shadow-xl ring-1 ring-black/5 bg-white p-4">
                 {viewMode === 'grid' ? (
                   <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
-                    {pagedBooks.map((b) => (
-                      <div
+                    {pagedBooks.map((b, index) => (
+                      <motion.div
                         key={b.id}
+                        initial="initial"
+                        whileInView="animate"
+                        viewport={{ once: true, margin: '-50px' }}
+                        variants={variants.fadeInUp}
+                        transition={{ ...transitions.spring, delay: index * 0.05 }}
+                        {...hoverLift}
                         className="relative rounded-xl ring-1 ring-black/5 bg-white shadow-sm overflow-hidden flex flex-col h-full"
                       >
                         <div className="relative h-40 w-full">
@@ -468,7 +482,7 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                               </span>
                             </div>
                           )}
-                          <button
+                          <motion.button
                             type="button"
                             aria-label="Read"
                             title="Read"
@@ -481,12 +495,13 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                               })
                             }
                             disabled={!b.fileUrl}
+                            {...hoverScale}
                             className="pt-2 mt-auto inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed bg-cyan-700 hover:bg-cyan-600"
                           >
                             Read Now
-                          </button>
+                          </motion.button>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                     {pagedBooks.length === 0 && (
                       <div className="col-span-full text-center text-gray-500">No books found</div>
@@ -494,9 +509,15 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {pagedBooks.map((b) => (
-                      <div
+                    {pagedBooks.map((b, index) => (
+                      <motion.div
                         key={b.id}
+                        initial="initial"
+                        whileInView="animate"
+                        viewport={{ once: true, margin: '-50px' }}
+                        variants={variants.fadeInLeft}
+                        {...hoverLift}
+                        transition={{ ...transitions.spring, delay: index * 0.05 }}
                         className="relative rounded-xl ring-1 ring-black/5 bg-white shadow-sm overflow-hidden flex h-full"
                       >
                         <div className="relative h-28 w-28 shrink-0">
@@ -527,7 +548,7 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                               </span>
                             </div>
                           )}
-                          <button
+                          <motion.button
                             type="button"
                             aria-label="Read"
                             title="Read"
@@ -540,12 +561,13 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
                               })
                             }
                             disabled={!b.fileUrl}
+                            {...hoverScale}
                             className="pt-2 mt-auto inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed bg-cyan-700 hover:bg-cyan-600"
                           >
                             Read Now
-                          </button>
+                          </motion.button>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                     {pagedBooks.length === 0 && (
                       <div className="text-center text-gray-500">No books found</div>
@@ -564,26 +586,35 @@ export default function PdfBooks({ onNavigate }: PdfBooksProps) {
               />
             </div>
           </section>
-          {activePdf && (
-            <div className="fixed inset-0 z-[60] bg-white">
-              <button
-                type="button"
-                aria-label="Close reading room"
-                title="Close reading room"
-                onClick={() => setActivePdf(null)}
-                className="absolute top-4 left-4 z-[70] rounded-xl bg-cyan-700 px-3 py-1.5 text-sm font-semibold text-white shadow-lg hover:bg-cyan-600"
+          <AnimatePresence>
+            {activePdf && (
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={modalVariants}
+                className="fixed inset-0 z-[60] bg-white"
               >
-                Back
-              </button>
-              <PdfReader
-                bookId={activePdf.id}
-                fileUrl={activePdf.fileUrl}
-                title={activePdf.title}
-                coverUrl={activePdf.cover}
-                onClose={() => setActivePdf(null)}
-              />
-            </div>
-          )}
+                <motion.button
+                  type="button"
+                  aria-label="Close reading room"
+                  title="Close reading room"
+                  onClick={() => setActivePdf(null)}
+                  {...hoverScale}
+                  className="absolute top-4 left-4 z-[70] rounded-xl bg-cyan-700 px-3 py-1.5 text-sm font-semibold text-white shadow-lg hover:bg-cyan-600"
+                >
+                  Back
+                </motion.button>
+                <PdfReader
+                  bookId={activePdf.id}
+                  fileUrl={activePdf.fileUrl}
+                  title={activePdf.title}
+                  coverUrl={activePdf.cover}
+                  onClose={() => setActivePdf(null)}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </main>
       </div>
       <ScrollToTopButton />
