@@ -3,44 +3,68 @@
 ## Session Information
 
 **Date:** 2026-04-04
-**Session Type:** TypeScript Build Error Fixes
+**Session Type:** UI/UX Improvements & Firebase App Check Fix
 **Agent:** Trae
 
 ---
 
 ## Tasks Completed
 
-### 1. Fixed TypeScript Build Errors (6 errors)
+### 1. UI/UX Improvements (Responsive Design & Accessibility)
 
-Fixed all TypeScript compilation errors that were causing Vercel build failures:
+Fixed touch targets and responsive design issues in PDF Reader and Notes components:
 
-#### ListView.tsx (2 errors fixed)
+#### PdfReader.tsx (5 buttons fixed)
 
-1. **Auth | null type error (Line 51)**
-   - Added explicit null check: `if (!auth) return` before `onAuthStateChanged` call
-   - Ensures `auth` is non-null when passed to Firebase function
+- Fixed all 5 feature icon buttons (Bookmarks, Notes, Favorites, Dark Mode, Fullscreen)
+- Added proper touch targets: `min-h-[44px] min-w-[44px]` (accessibility requirement)
+- Added responsive padding: `p-2 sm:p-3`
+- All buttons now meet WCAG 2.1 touch target guidelines
 
-2. **GoalDoc.id property error (Line 83)**
-   - Added `id?: string` to `GoalDoc` interface
-   - Allows accessing `v.id` when mapping Firestore documents
+#### Notes.tsx (Multiple fixes)
 
-#### ReadingGoals.tsx (4 errors fixed)
+- Removed inline `touchAction: 'none'` style (violated NO inline CSS rule)
+- Added Tailwind `touch-none` class instead
+- Added responsive minimum sizes for note popup:
+  - Mobile: `min-w-[220px] min-h-[160px]`
+  - Tablet+: `sm:min-w-[280px] sm:min-h-[200px]`
+- Fixed delete button touch target: `min-h-[44px]`
+- Fixed close button size: `size-11` (44px)
 
-3. **WheelEventWithDelta interface error (Line 58)**
-   - Removed `extends WheelEvent` from interface declaration
-   - `deltaY?: number` was incompatible with `WheelEvent.deltaY: number` (required)
+### 2. Firebase App Check 403 Error Fix
 
-4. **Type conversion error (Line 518)**
-   - Fixed by removing inheritance, no longer needs problematic casting
+Resolved 403 Forbidden error from Firebase App Check debug token exchange:
 
-5. **ReactFlowInstance.project error (Line 557)**
-   - Replaced deprecated `project()` with `screenToFlowPosition()` (ReactFlow v11+ API)
+#### Problem
 
-6. **ReactFlowInstance type mismatch (Line 564)**
-   - Updated `flowRef` type to `ReactFlowInstance<Node, Edge>`
-   - Added double casting: `as unknown as ReactFlowInstance<Node, Edge>` in `onInit`
+- Development mode was trying to exchange debug tokens
+- Debug token was not registered in Firebase Console
+- Console showed repeated 403 errors: `POST https://content-firebaseappcheck.googleapis.com/.../exchangeDebugToken 403 (Forbidden)`
 
-### 2. Build Verification
+#### Solution
+
+- Disabled App Check in development mode
+- App Check now runs in production only (`!import.meta.env.DEV`)
+- Removed debug token logic entirely (not needed for development)
+
+#### Code Change
+
+```typescript
+// Before: App Check ran in DEV with debug token
+if (app) {
+  if (import.meta.env.DEV) {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true
+  }
+  initializeAppCheck(app, {...})
+}
+
+// After: App Check runs in production only
+if (app && !import.meta.env.DEV) {
+  initializeAppCheck(app, {...})
+}
+```
+
+### 3. Build Verification
 
 - Ran `npm run build` - completed successfully
 - All TypeScript errors resolved
@@ -50,31 +74,39 @@ Fixed all TypeScript compilation errors that were causing Vercel build failures:
 
 ## Files Modified
 
-| File                                           | Changes                                                        |
-| ---------------------------------------------- | -------------------------------------------------------------- |
-| `src/components/ReadingGoals/ListView.tsx`     | Added `id` to GoalDoc, added auth null check                   |
-| `src/components/ReadingGoals/ReadingGoals.tsx` | Fixed WheelEventWithDelta, ReactFlowInstance types, API method |
-| `CHANGELOG.md`                                 | Documented all fixes                                           |
+| File                                                | Changes                                                         |
+| --------------------------------------------------- | --------------------------------------------------------------- |
+| `src/components/Collections/Features/PdfReader.tsx` | Fixed 5 icon buttons with proper touch targets (44px)           |
+| `src/components/Collections/Features/Notes.tsx`     | Removed inline CSS, added responsive sizes, fixed touch targets |
+| `src/firebaseConfig.ts`                             | Disabled App Check in development mode                          |
+| `CHANGELOG.md`                                      | Documented all fixes                                            |
 
 ---
 
 ## Technical Notes
 
-### ReactFlow API Update
+### Touch Target Requirements (WCAG 2.1)
 
-The `project()` method was renamed to `screenToFlowPosition()` in ReactFlow v11+. This converts screen coordinates to flow coordinates.
+- Minimum touch target size: **44px x 44px**
+- Applies to all interactive elements (buttons, links, inputs)
+- Critical for mobile/tablet accessibility
 
-### TypeScript Strict Mode
+### Firebase App Check
 
-The errors were caused by:
+- App Check is **free** on Firebase Spark (free) plan
+- Debug tokens must be registered in Firebase Console for local development
+- Alternative: Disable App Check in development (chosen solution)
 
-- Strict null checks (`Auth | null` vs `Auth`)
-- Interface inheritance with incompatible property types
-- Generic type parameters not matching between declarations
+### Tailwind CSS Rules
+
+- No inline styles allowed (`style={{}}`)
+- Use Tailwind utility classes instead
+- Example: `touch-none` instead of `style={{ touchAction: 'none' }}`
 
 ---
 
 ## Next Steps
 
-- Deploy to Vercel (build should pass now)
-- Monitor for any runtime issues
+- Test development server to verify 403 errors are gone
+- Test production build to verify App Check still works
+- Continue with any remaining UI/UX improvements

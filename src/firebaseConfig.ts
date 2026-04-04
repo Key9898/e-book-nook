@@ -56,19 +56,11 @@ export const storage = app
 export const isFirebaseReady = Boolean(app)
 export default app
 
-// 4. App Check Initialization (Updated & Merged Section)
-if (app) {
-  // Key ကို .env ကနေယူပါမယ် (VITE_RECAPTCHA_SITE_KEY သုံးထားပါတယ်)
+// 4. App Check Initialization (Production Only)
+if (app && !import.meta.env.DEV) {
   const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
 
   if (siteKey) {
-    // Localhost (DEV mode) ဖြစ်ရင် Debug Token ဖွင့်ပါမယ်
-    if (import.meta.env.DEV) {
-      // @ts-expect-error Firebase App Check debug token
-      self.FIREBASE_APPCHECK_DEBUG_TOKEN = true
-      console.log('App Check debug token enabled for localhost')
-    }
-
     try {
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(siteKey),

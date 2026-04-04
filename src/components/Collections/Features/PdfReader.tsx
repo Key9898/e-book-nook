@@ -342,26 +342,26 @@ export default function PdfReader({ bookId, fileUrl, title, coverUrl, onClose }:
   return (
     <div className="fixed inset-0 z-[2000] h-screen w-full bg-gray-50 dark:bg-gray-800 flex flex-col overflow-hidden">
       {/* Back Button */}
-      <div className="absolute left-5 z-50 top-29 sm:top-28 lg:top-6">
+      <div className="absolute left-4 z-50 top-4 sm:top-6 lg:top-8">
         <button
           type="button"
           aria-label="Back"
           title="Back"
           onClick={handleBack}
-          className="p-2 bg-white dark:bg-slate-700 rounded-full shadow hover:scale-105"
+          className="p-2 sm:p-3 bg-white dark:bg-slate-700 rounded-full shadow hover:scale-105 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
           <span className="sr-only">Back</span>
-          <ChevronLeftIcon aria-hidden className="size-6 text-slate-700 dark:text-white" />
+          <ChevronLeftIcon aria-hidden className="size-5 sm:size-6 text-slate-700 dark:text-white" />
         </button>
       </div>
 
       {/* Feature Icons Bar (Right Side) */}
-      <div className="absolute top-29 sm:top-28 lg:top-20 right-4 z-40 flex flex-col gap-3">
+      <div className="absolute top-4 sm:top-6 lg:top-8 right-4 z-40 flex flex-col gap-3">
         {/* Add to Favorite (Heart) */}
         <button
           type="button"
           onClick={addFavorite}
-          className="p-2 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition"
+          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center"
           title="Add to Favorites"
         >
           <MdFavoriteBorder className="size-6 text-rose-500" />
@@ -370,7 +370,7 @@ export default function PdfReader({ bookId, fileUrl, title, coverUrl, onClose }:
         <button
           type="button"
           onClick={() => setOpenFav(true)}
-          className="p-2 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition"
+          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center"
           title="My List"
         >
           <FaRegBookmark className="size-5 text-cyan-600 dark:text-cyan-400" />
@@ -379,7 +379,7 @@ export default function PdfReader({ bookId, fileUrl, title, coverUrl, onClose }:
         <button
           type="button"
           onClick={() => setOpenNotes(!openNotes)}
-          className="p-2 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition"
+          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center"
           title="My Notes"
         >
           <FaEdit className="size-5 text-yellow-500" />
@@ -388,7 +388,7 @@ export default function PdfReader({ bookId, fileUrl, title, coverUrl, onClose }:
         <button
           type="button"
           onClick={() => setOpenRecent(true)}
-          className="p-2 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition"
+          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center"
           title="History"
         >
           <FaHistory className="size-5 text-purple-500" />
@@ -397,7 +397,7 @@ export default function PdfReader({ bookId, fileUrl, title, coverUrl, onClose }:
         <button
           type="button"
           onClick={toggle}
-          className="p-2 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition"
+          className="p-2 sm:p-3 rounded-full bg-white dark:bg-slate-700 shadow-lg hover:scale-110 transition-transform min-h-[44px] min-w-[44px] flex items-center justify-center"
           title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
           {isDark ? (

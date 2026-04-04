@@ -189,13 +189,12 @@ export default function Notes({ open = true, onClose, bookId }: NotesProps) {
   return (
     <div
       ref={dragRef}
-      className="absolute z-50 bg-yellow-100 dark:bg-gray-700 dark:text-white shadow-lg rounded-xl ring-1 ring-black/5 overflow-hidden flex flex-col"
+      className="absolute z-50 bg-yellow-100 dark:bg-gray-700 dark:text-white shadow-lg rounded-xl ring-1 ring-black/5 overflow-hidden flex flex-col touch-none min-w-[220px] min-h-[160px] sm:min-w-[280px] sm:min-h-[200px]"
       style={{
         left: pos.x,
         top: pos.y,
         width: size.w,
         height: size.h,
-        touchAction: 'none',
       }}
     >
       <div
@@ -210,7 +209,7 @@ export default function Notes({ open = true, onClose, bookId }: NotesProps) {
             title="Delete"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={clearNotes}
-            className="rounded-xl px-2 py-1 text-xs bg-rose-600 text-white hover:bg-rose-500"
+            className="rounded-xl px-3 py-2 text-xs bg-rose-600 text-white hover:bg-rose-500 transition-colors min-h-[44px] flex items-center justify-center"
           >
             Delete
           </button>
@@ -220,9 +219,9 @@ export default function Notes({ open = true, onClose, bookId }: NotesProps) {
             title="Close"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={onClose}
-            className="size-8 rounded-xl bg-white/80 backdrop-blur ring-1 ring-white/30 shadow grid place-items-center hover:bg-white"
+            className="size-11 rounded-xl bg-white/80 backdrop-blur ring-1 ring-white/30 shadow grid place-items-center hover:bg-white transition-colors"
           >
-            <XMarkIcon aria-hidden className="size-4 text-slate-700" />
+            <XMarkIcon aria-hidden className="size-5 text-slate-700" />
           </button>
         </div>
       </div>

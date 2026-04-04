@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (2026-04-04 - Firebase App Check 403 Error)
+
+- **firebaseConfig.ts** - Disabled App Check in development mode to prevent 403 Forbidden errors from debug token exchange
+- **firebaseConfig.ts** - Removed debug token logic, App Check now runs in production only (`!import.meta.env.DEV`)
+
+### Fixed (2026-04-04 - UI/UX Improvements)
+
+- **PdfReader.tsx** - Fixed all 5 feature icon buttons with proper touch targets (44px minimum) for accessibility
+- **PdfReader.tsx** - Added responsive padding `p-2 sm:p-3` with `min-h-[44px] min-w-[44px]`
+- **Notes.tsx** - Removed inline `touchAction: 'none'` style, replaced with Tailwind `touch-none` class
+- **Notes.tsx** - Added responsive minimum sizes for note popup (`min-w-[220px] min-h-[160px] sm:min-w-[280px] sm:min-h-[200px]`)
+- **Notes.tsx** - Fixed delete button touch target with `min-h-[44px]`
+- **Notes.tsx** - Fixed close button size to `size-11` (44px) for proper touch target
+
 ### Fixed (2026-04-04 - TypeScript Build Errors)
 
 - **ListView.tsx** - Added `id?: string` to `GoalDoc` interface to fix missing property error
